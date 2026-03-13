@@ -8,12 +8,12 @@
 <main class="container mt-4 flex-grow-1">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="@{/repositories}">Repositories</a></li>
-            <li class="breadcrumb-item active" th:text="${repositoryForm.id != null} ? 'Edit' : 'New'">Form</li>
+            <li class="breadcrumb-item"><a th:href="@{/repositories}" th:text="#{repository.title}">Repositories</a></li>
+            <li class="breadcrumb-item active" th:text="${repositoryForm.id != null} ? #{repository.form.edit} : #{repository.form.new}">Form</li>
         </ol>
     </nav>
 
-    <h2 th:text="${repositoryForm.id != null} ? 'Edit Repository' : 'New Repository'">Repository Form</h2>
+    <h2 th:text="${repositoryForm.id != null} ? #{repository.form.edit} : #{repository.form.new}">Repository Form</h2>
     <hr>
 
     <div class="row justify-content-center">
@@ -24,75 +24,75 @@
                         <input type="hidden" th:field="*{id}">
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label"><span th:text="#{repository.form.name}">Name</span> <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" th:field="*{name}"
                                    th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
-                                   placeholder="My S3 Backup Repository">
+                                   th:placeholder="#{repository.form.name.placeholder}">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="groupId" class="form-label">Group</label>
+                            <label for="groupId" class="form-label" th:text="#{repository.form.group}">Group</label>
                             <select class="form-select" id="groupId" th:field="*{groupId}">
-                                <option value="">— No Group —</option>
+                                <option value="" th:text="#{repository.form.group.none}">— No Group —</option>
                                 <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.name}">Group</option>
                             </select>
-                            <div class="form-text">Optionally assign this repository to a group.</div>
+                            <div class="form-text" th:text="#{repository.form.group.hint}">Optionally assign this repository to a group.</div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="type" class="form-label">Repository Type <span class="text-danger">*</span></label>
+                            <label for="type" class="form-label"><span th:text="#{repository.form.type}">Repository Type</span> <span class="text-danger">*</span></label>
                             <select class="form-select" id="type" th:field="*{type}">
                                 <option th:each="t : ${repositoryTypes}" th:value="${t}" th:text="${t.displayName}">Type</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="url" class="form-label">Repository URL <span class="text-danger">*</span></label>
+                            <label for="url" class="form-label"><span th:text="#{repository.form.url}">Repository URL</span> <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="url" th:field="*{url}"
                                    th:classappend="${#fields.hasErrors('url')} ? 'is-invalid' : ''"
-                                   placeholder="s3:https://s3.amazonaws.com/bucket-name/restic-repo">
+                                   th:placeholder="#{repository.form.url.placeholder}">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('url')}" th:errors="*{url}"></div>
-                            <div class="form-text">For S3: <code>s3:https://s3.amazonaws.com/bucket-name/path</code> or <code>s3:https://custom-endpoint/bucket/path</code></div>
+                            <div class="form-text" th:utext="#{repository.form.url.hint}">For S3: <code>s3:https://s3.amazonaws.com/bucket-name/path</code> or <code>s3:https://custom-endpoint/bucket/path</code></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="repositoryPassword" class="form-label">Repository Password <span class="text-danger">*</span></label>
+                            <label for="repositoryPassword" class="form-label"><span th:text="#{repository.form.password}">Repository Password</span> <span class="text-danger">*</span></label>
                             <input type="password" class="form-control" id="repositoryPassword" th:field="*{repositoryPassword}"
                                    th:classappend="${#fields.hasErrors('repositoryPassword')} ? 'is-invalid' : ''">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('repositoryPassword')}" th:errors="*{repositoryPassword}"></div>
-                            <div class="form-text">The password used to encrypt the restic repository.</div>
+                            <div class="form-text" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
                         </div>
 
                         <fieldset class="border rounded p-3 mb-3">
-                            <legend class="w-auto px-2 fs-6">S3 Configuration</legend>
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.s3config}">S3 Configuration</legend>
 
                             <div class="mb-3">
-                                <label for="s3AccessKey" class="form-label">Access Key</label>
+                                <label for="s3AccessKey" class="form-label" th:text="#{repository.form.s3.accessKey}">Access Key</label>
                                 <input type="text" class="form-control" id="s3AccessKey" th:field="*{s3AccessKey}">
                             </div>
 
                             <div class="mb-3">
-                                <label for="s3SecretKey" class="form-label">Secret Key</label>
+                                <label for="s3SecretKey" class="form-label" th:text="#{repository.form.s3.secretKey}">Secret Key</label>
                                 <input type="password" class="form-control" id="s3SecretKey" th:field="*{s3SecretKey}">
                             </div>
 
                             <div class="mb-3">
-                                <label for="s3Region" class="form-label">Region</label>
+                                <label for="s3Region" class="form-label" th:text="#{repository.form.s3.region}">Region</label>
                                 <input type="text" class="form-control" id="s3Region" th:field="*{s3Region}"
-                                       placeholder="us-east-1">
+                                       th:placeholder="#{repository.form.s3.region.placeholder}">
                             </div>
                         </fieldset>
 
                         <div class="mb-3">
-                            <label for="comment" class="form-label">Comment</label>
+                            <label for="comment" class="form-label" th:text="#{repository.form.comment}">Comment</label>
                             <textarea class="form-control" id="comment" th:field="*{comment}" rows="3"
-                                      placeholder="Add notes or comments about this repository"></textarea>
+                                      th:placeholder="#{repository.form.comment.placeholder}"></textarea>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="scanIntervalMinutes" class="form-label">Scan Interval (minutes) <span class="text-danger">*</span></label>
+                                <label for="scanIntervalMinutes" class="form-label"><span th:text="#{repository.form.scanInterval}">Scan Interval (minutes)</span> <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="scanIntervalMinutes" th:field="*{scanIntervalMinutes}"
                                        th:classappend="${#fields.hasErrors('scanIntervalMinutes')} ? 'is-invalid' : ''" min="1">
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('scanIntervalMinutes')}" th:errors="*{scanIntervalMinutes}"></div>
@@ -100,17 +100,17 @@
                             <div class="col-md-6 mb-3 d-flex align-items-end">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
-                                    <label class="form-check-label" for="enabled">Enabled</label>
+                                    <label class="form-check-label" for="enabled" th:text="#{repository.form.enabled}">Enabled</label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg"></i> Save
+                                <i class="bi bi-check-lg"></i> <span th:text="#{repository.form.save}">Save</span>
                             </button>
                             <a th:href="@{/repositories}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg"></i> Cancel
+                                <i class="bi bi-x-lg"></i> <span th:text="#{repository.form.cancel}">Cancel</span>
                             </a>
                         </div>
                     </form>

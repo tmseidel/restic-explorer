@@ -8,12 +8,12 @@
 <main class="container mt-4 flex-grow-1">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="@{/groups}">Groups</a></li>
-            <li class="breadcrumb-item active" th:text="${groupForm.id != null} ? 'Edit' : 'New'">Form</li>
+            <li class="breadcrumb-item"><a th:href="@{/groups}" th:text="#{group.title}">Groups</a></li>
+            <li class="breadcrumb-item active" th:text="${groupForm.id != null} ? #{group.form.edit} : #{group.form.new}">Form</li>
         </ol>
     </nav>
 
-    <h2 th:text="${groupForm.id != null} ? 'Edit Group' : 'New Group'">Group Form</h2>
+    <h2 th:text="${groupForm.id != null} ? #{group.form.edit} : #{group.form.new}">Group Form</h2>
     <hr>
 
     <div class="row justify-content-center">
@@ -24,25 +24,25 @@
                         <input type="hidden" th:field="*{id}">
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Group Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label"><span th:text="#{group.form.name}">Group Name</span> <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" th:field="*{name}"
                                    th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
-                                   placeholder="e.g. Production Servers">
+                                   th:placeholder="#{group.form.name.placeholder}">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
+                            <label for="description" class="form-label" th:text="#{group.form.description}">Description</label>
                             <textarea class="form-control" id="description" th:field="*{description}" rows="3"
-                                      placeholder="Optional description for this group"></textarea>
+                                      th:placeholder="#{group.form.description.placeholder}"></textarea>
                         </div>
 
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg"></i> Save
+                                <i class="bi bi-check-lg"></i> <span th:text="#{group.form.save}">Save</span>
                             </button>
                             <a th:href="@{/groups}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg"></i> Cancel
+                                <i class="bi bi-x-lg"></i> <span th:text="#{group.form.cancel}">Cancel</span>
                             </a>
                         </div>
                     </form>
