@@ -2,6 +2,7 @@ package org.remus.resticexplorer.scanning.web;
 
 import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
+import org.remus.resticexplorer.config.exception.SnapshotNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
@@ -104,7 +105,7 @@ public class DashboardController {
         ResticRepository repo = repositoryService.findById(repoId)
                 .orElseThrow(() -> new RepositoryNotFoundException(repoId));
         Snapshot snapshot = scanService.getSnapshot(repoId, snapshotId)
-                .orElseThrow(() -> new RepositoryNotFoundException(repoId));
+                .orElseThrow(() -> new SnapshotNotFoundException(snapshotId));
 
         model.addAttribute("repository", repo);
         model.addAttribute("snapshot", snapshot);
