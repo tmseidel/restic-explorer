@@ -19,7 +19,7 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 
 ## Screenshots
 
-![Setup Page](https://github.com/user-attachments/assets/575dfb8b-6a97-4bfe-9c77-e5f60cbadd41)
+![Dashboard](docs/screenshot_dashboard.png)
 
 ## Quick Start
 
