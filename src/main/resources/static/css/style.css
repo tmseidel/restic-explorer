@@ -1,9 +1,5 @@
 /* Restic Explorer - Custom Styles */
 
-body {
-    background-color: #f8f9fa;
-}
-
 .navbar-brand img {
     filter: brightness(0) invert(1);
 }
@@ -13,7 +9,7 @@ body {
 }
 
 .card-header {
-    background-color: #f8f9fa;
+    background-color: var(--bs-tertiary-bg);
     font-weight: 600;
 }
 
@@ -30,7 +26,7 @@ code {
 }
 
 footer {
-    border-top: 1px solid #dee2e6;
+    border-top: 1px solid var(--bs-border-color);
 }
 
 .badge {
