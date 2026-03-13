@@ -65,7 +65,9 @@ public class DashboardController {
                     .anyMatch(r -> r.getStatus() == ScanResult.ScanStatus.FAILED);
             boolean anyInProgress = lastScanResults.values().stream()
                     .anyMatch(r -> r.getStatus() == ScanResult.ScanStatus.IN_PROGRESS);
-            boolean allSuccess = !lastScanResults.isEmpty() && lastScanResults.values().stream()
+            boolean allSuccess = lastScanResults.size() == repos.size()
+                    && !lastScanResults.isEmpty()
+                    && lastScanResults.values().stream()
                     .allMatch(r -> r.getStatus() == ScanResult.ScanStatus.SUCCESS);
 
             if (anyFailed) {
