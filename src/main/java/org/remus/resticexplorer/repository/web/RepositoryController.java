@@ -2,6 +2,7 @@ package org.remus.resticexplorer.repository.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryType;
 import org.remus.resticexplorer.repository.data.ResticRepository;
@@ -17,10 +18,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class RepositoryController {
 
     private final RepositoryService repositoryService;
+    private final GroupService groupService;
 
     @GetMapping
     public String list(Model model) {
         model.addAttribute("repositories", repositoryService.findAll());
+        model.addAttribute("groups", groupService.findAll());
         return "repository/list";
     }
 
@@ -28,6 +31,7 @@ public class RepositoryController {
     public String showCreateForm(Model model) {
         model.addAttribute("repositoryForm", new RepositoryForm());
         model.addAttribute("repositoryTypes", RepositoryType.values());
+        model.addAttribute("groups", groupService.findAll());
         return "repository/form";
     }
 
@@ -46,8 +50,11 @@ public class RepositoryController {
         form.setS3Region(repo.getS3Region());
         form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
         form.setEnabled(repo.isEnabled());
+        form.setGroupId(repo.getGroup() != null ? repo.getGroup().getId() : null);
+        form.setComment(repo.getComment());
         model.addAttribute("repositoryForm", form);
         model.addAttribute("repositoryTypes", RepositoryType.values());
+        model.addAttribute("groups", groupService.findAll());
         return "repository/form";
     }
 
@@ -56,6 +63,7 @@ public class RepositoryController {
                        BindingResult result, Model model, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             model.addAttribute("repositoryTypes", RepositoryType.values());
+            model.addAttribute("groups", groupService.findAll());
             return "repository/form";
         }
         ResticRepository repo;
@@ -74,6 +82,12 @@ public class RepositoryController {
         repo.setS3Region(form.getS3Region());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setEnabled(form.isEnabled());
+        repo.setComment(form.getComment());
+        if (form.getGroupId() != null) {
+            repo.setGroup(groupService.findById(form.getGroupId()).orElse(null));
+        } else {
+            repo.setGroup(null);
+        }
         repositoryService.save(repo);
         redirectAttributes.addFlashAttribute("successMessage", "Repository saved successfully");
         return "redirect:/repositories";

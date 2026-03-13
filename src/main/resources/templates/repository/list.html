@@ -32,10 +32,16 @@
             <div class="card shadow-sm h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong th:text="${repo.name}">Repository</strong>
-                    <span class="badge" th:classappend="${repo.enabled} ? 'bg-success' : 'bg-secondary'"
-                          th:text="${repo.enabled} ? 'Active' : 'Disabled'">Active</span>
+                    <div>
+                        <span th:if="${repo.group != null}" class="badge bg-info me-1" th:text="${repo.group.name}">Group</span>
+                        <span class="badge" th:classappend="${repo.enabled} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${repo.enabled} ? 'Active' : 'Disabled'">Active</span>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <div th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="mb-2">
+                        <small class="text-muted"><i class="bi bi-chat-left-text"></i> <span th:text="${repo.comment}"></span></small>
+                    </div>
                     <dl class="row mb-0">
                         <dt class="col-5">Type</dt>
                         <dd class="col-7"><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></dd>

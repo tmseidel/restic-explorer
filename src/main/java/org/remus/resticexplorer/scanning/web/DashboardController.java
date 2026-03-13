@@ -1,7 +1,9 @@
 package org.remus.resticexplorer.scanning.web;
 
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
+import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.ScanResult;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -19,6 +22,7 @@ public class DashboardController {
 
     private final RepositoryService repositoryService;
     private final ScanService scanService;
+    private final GroupService groupService;
 
     @GetMapping("/")
     public String dashboard(Model model) {
@@ -31,7 +35,19 @@ public class DashboardController {
             scanService.getLastScanResult(repo.getId()).ifPresent(r -> lastScanResults.put(repo.getId(), r));
         }
 
+        // Group repositories
+        List<RepositoryGroup> groups = groupService.findAll();
+        Map<Long, List<ResticRepository>> groupedRepos = repos.stream()
+                .filter(r -> r.getGroup() != null)
+                .collect(Collectors.groupingBy(r -> r.getGroup().getId()));
+        List<ResticRepository> ungroupedRepos = repos.stream()
+                .filter(r -> r.getGroup() == null)
+                .collect(Collectors.toList());
+
         model.addAttribute("repositories", repos);
+        model.addAttribute("groups", groups);
+        model.addAttribute("groupedRepos", groupedRepos);
+        model.addAttribute("ungroupedRepos", ungroupedRepos);
         model.addAttribute("snapshotCounts", snapshotCounts);
         model.addAttribute("lastScanResults", lastScanResults);
         model.addAttribute("totalRepositories", repos.size());

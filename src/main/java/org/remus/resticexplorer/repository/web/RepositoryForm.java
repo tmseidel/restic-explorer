@@ -32,4 +32,8 @@ public class RepositoryForm {
     private Integer scanIntervalMinutes = 60;
 
     private boolean enabled = true;
+
+    private Long groupId;
+
+    private String comment;
 }

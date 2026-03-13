@@ -43,6 +43,13 @@ public class ResticRepository {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private RepositoryGroup group;
+
+    @Column(columnDefinition = "TEXT")
+    private String comment;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

@@ -29,6 +29,9 @@
                     <a class="nav-link" th:href="@{/repositories}"><i class="bi bi-hdd-stack"></i> Repositories</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/groups}"><i class="bi bi-collection"></i> Groups</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin}"><i class="bi bi-gear"></i> Admin</a>
                 </li>
             </ul>

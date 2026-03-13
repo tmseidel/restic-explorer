@@ -32,6 +32,15 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="groupId" class="form-label">Group</label>
+                            <select class="form-select" id="groupId" th:field="*{groupId}">
+                                <option value="">— No Group —</option>
+                                <option th:each="g : ${groups}" th:value="${g.id}" th:text="${g.name}">Group</option>
+                            </select>
+                            <div class="form-text">Optionally assign this repository to a group.</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="type" class="form-label">Repository Type <span class="text-danger">*</span></label>
                             <select class="form-select" id="type" th:field="*{type}">
                                 <option th:each="t : ${repositoryTypes}" th:value="${t}" th:text="${t.displayName}">Type</option>
@@ -74,6 +83,12 @@
                                        placeholder="us-east-1">
                             </div>
                         </fieldset>
+
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment</label>
+                            <textarea class="form-control" id="comment" th:field="*{comment}" rows="3"
+                                      placeholder="Add notes or comments about this repository"></textarea>
+                        </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">

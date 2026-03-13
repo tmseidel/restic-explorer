@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    <!-- Repository Overview Table -->
+    <!-- Repository Overview -->
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-list"></i> Repository Overview</span>
@@ -70,54 +70,122 @@
                     <i class="bi bi-plus-lg"></i> Add Your First Repository
                 </a>
             </div>
-            <div th:if="${!#lists.isEmpty(repositories)}" class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Snapshots</th>
-                            <th>Last Scan</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="repo : ${repositories}">
-                            <td>
-                                <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}" th:text="${repo.name}">Repo</a>
-                            </td>
-                            <td><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></td>
-                            <td th:text="${snapshotCounts[repo.id]} ?: 0">0</td>
-                            <td>
-                                <span th:if="${repo.lastScanned != null}" th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
-                                <span th:if="${repo.lastScanned == null}" class="text-muted">Never</span>
-                            </td>
-                            <td>
-                                <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'SUCCESS'}"
-                                      class="badge bg-success">OK</span>
-                                <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'FAILED'}"
-                                      class="badge bg-danger">Failed</span>
-                                <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'IN_PROGRESS'}"
-                                      class="badge bg-warning">Scanning</span>
-                                <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary">Pending</span>
-                                <span th:if="${!repo.enabled}" class="badge bg-dark ms-1">Disabled</span>
-                            </td>
-                            <td>
-                                <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
-                                   class="btn btn-sm btn-outline-primary" title="View Snapshots">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <form th:action="@{/repositories/{id}/scan(id=${repo.id})}" method="post"
-                                      class="d-inline" sec:authorize="hasRole('ADMIN')">
-                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Scan Now">
-                                        <i class="bi bi-arrow-clockwise"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div th:if="${!#lists.isEmpty(repositories)}">
+                <!-- Grouped repositories -->
+                <div th:each="group : ${groups}" th:if="${groupedRepos.containsKey(group.id)}">
+                    <div class="bg-light border-bottom px-3 py-2">
+                        <i class="bi bi-collection"></i>
+                        <strong th:text="${group.name}">Group</strong>
+                        <span th:if="${group.description != null}" class="text-muted ms-2 small" th:text="${group.description}"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Snapshots</th>
+                                    <th>Last Scan</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="repo : ${groupedRepos.get(group.id)}">
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}" th:text="${repo.name}">Repo</a>
+                                        <small th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="d-block text-muted" th:text="${repo.comment}"></small>
+                                    </td>
+                                    <td><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></td>
+                                    <td th:text="${snapshotCounts[repo.id]} ?: 0">0</td>
+                                    <td>
+                                        <span th:if="${repo.lastScanned != null}" th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                                        <span th:if="${repo.lastScanned == null}" class="text-muted">Never</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success">OK</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger">Failed</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning">Scanning</span>
+                                        <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary">Pending</span>
+                                        <span th:if="${!repo.enabled}" class="badge bg-dark ms-1">Disabled</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
+                                           class="btn btn-sm btn-outline-primary" title="View Snapshots">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form th:action="@{/repositories/{id}/scan(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Scan Now">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Ungrouped repositories -->
+                <div th:if="${!#lists.isEmpty(ungroupedRepos)}">
+                    <div th:if="${!#lists.isEmpty(groups)}" class="bg-light border-bottom px-3 py-2">
+                        <i class="bi bi-folder"></i>
+                        <strong>Ungrouped</strong>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Snapshots</th>
+                                    <th>Last Scan</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="repo : ${ungroupedRepos}">
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}" th:text="${repo.name}">Repo</a>
+                                        <small th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="d-block text-muted" th:text="${repo.comment}"></small>
+                                    </td>
+                                    <td><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></td>
+                                    <td th:text="${snapshotCounts[repo.id]} ?: 0">0</td>
+                                    <td>
+                                        <span th:if="${repo.lastScanned != null}" th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                                        <span th:if="${repo.lastScanned == null}" class="text-muted">Never</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success">OK</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger">Failed</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning">Scanning</span>
+                                        <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary">Pending</span>
+                                        <span th:if="${!repo.enabled}" class="badge bg-dark ms-1">Disabled</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
+                                           class="btn btn-sm btn-outline-primary" title="View Snapshots">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form th:action="@{/repositories/{id}/scan(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Scan Now">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

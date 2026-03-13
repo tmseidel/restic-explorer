@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/repositories/new", "/repositories/*/edit", "/repositories/*/delete", "/repositories/*/scan").hasRole("ADMIN")
+                .requestMatchers("/groups/**").hasRole("ADMIN")
                 .requestMatchers("/download/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
             )
