@@ -1,7 +1,7 @@
 package org.remus.resticexplorer.restic;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.beans.factory.annotation.Value;

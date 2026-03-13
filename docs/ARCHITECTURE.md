@@ -355,13 +355,13 @@ graph TB
 
 | Component | Technology |
 |---|---|
-| Backend Framework | Spring Boot 3.4 |
+| Backend Framework | Spring Boot 4.0 |
 | Template Engine | Thymeleaf |
 | CSS Framework | Bootstrap 5.3 |
 | Database (dev) | H2 (file-based) |
 | Database (prod) | PostgreSQL 16 |
 | ORM | Spring Data JPA / Hibernate |
-| Security | Spring Security 6 |
+| Security | Spring Security 7 |
 | Monitoring | Spring Actuator |
 | Build Tool | Maven |
 | Code Generation | Lombok |
