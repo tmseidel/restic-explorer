@@ -94,11 +94,11 @@ public class RepositoryController {
         // Preserve existing sensitive values when the field is left empty or contains the sentinel placeholder
         if (!isCreate) {
             if (org.springframework.util.StringUtils.hasText(form.getRepositoryPassword())
-                    && !RepositoryForm.isUnchanged(form.getRepositoryPassword())) {
+                    && RepositoryForm.isChanged(form.getRepositoryPassword())) {
                 repo.setRepositoryPassword(form.getRepositoryPassword());
             }
             if (org.springframework.util.StringUtils.hasText(form.getS3SecretKey())
-                    && !RepositoryForm.isUnchanged(form.getS3SecretKey())) {
+                    && RepositoryForm.isChanged(form.getS3SecretKey())) {
                 repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
             }
         } else {

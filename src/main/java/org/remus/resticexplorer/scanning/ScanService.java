@@ -91,10 +91,6 @@ public class ScanService {
             if (stats.containsKey("total_size")) {
                 totalSize = ((Number) stats.get("total_size")).longValue();
             }
-            long totalFiles = 0;
-            if (stats.containsKey("total_file_count")) {
-                totalFiles = ((Number) stats.get("total_file_count")).longValue();
-            }
 
             scanResult.setStatus(ScanResult.ScanStatus.SUCCESS);
             scanResult.setSnapshotCount(snapshots.size());
@@ -135,10 +131,6 @@ public class ScanService {
 
     public long getSnapshotCount(Long repositoryId) {
         return snapshotRepository.countByRepositoryId(repositoryId);
-    }
-
-    public List<ScanResult> getAllLatestScanResults() {
-        return scanResultRepository.findAll();
     }
 
     private LocalDateTime parseResticTime(String timeStr) {

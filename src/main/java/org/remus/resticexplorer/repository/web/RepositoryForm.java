@@ -46,7 +46,7 @@ public class RepositoryForm {
     /**
      * Returns true if the given value is the sentinel placeholder (i.e. unchanged).
      */
-    public static boolean isUnchanged(String value) {
-        return SENSITIVE_PLACEHOLDER.equals(value);
+    public static boolean isChanged(String value) {
+        return !SENSITIVE_PLACEHOLDER.equals(value);
     }
 }
