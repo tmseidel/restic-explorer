@@ -329,7 +329,7 @@ To add a new repository type:
 graph TB
     subgraph "Docker Compose"
         subgraph "App Container"
-            JAVA[Java 17 JRE]
+            JAVA[Java 21 JRE]
             RESTIC[Restic Binary]
             APP[Restic Explorer JAR]
         end

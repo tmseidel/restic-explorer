@@ -1,6 +1,7 @@
 package org.remus.resticexplorer.restic;
 
 import org.junit.jupiter.api.Test;
+import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.RepositoryType;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 
@@ -23,9 +24,9 @@ class ResticS3ProviderTest {
         repo.setType(RepositoryType.S3);
         repo.setUrl("s3:https://s3.amazonaws.com/test-bucket/restic");
         repo.setRepositoryPassword("secret");
-        repo.setS3AccessKey("AKIAIOSFODNN7EXAMPLE");
-        repo.setS3SecretKey("wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
-        repo.setS3Region("us-east-1");
+        repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, "AKIAIOSFODNN7EXAMPLE");
+        repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+        repo.setProperty(RepositoryPropertyKey.S3_REGION, "us-east-1");
 
         Map<String, String> env = provider.buildEnvironment(repo);
 

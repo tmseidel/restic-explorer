@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "restic_repositories")
@@ -30,10 +32,12 @@ public class ResticRepository {
     @Column(nullable = false)
     private String repositoryPassword;
 
-    // S3-specific fields
-    private String s3AccessKey;
-    private String s3SecretKey;
-    private String s3Region;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "repository_properties", joinColumns = @JoinColumn(name = "repository_id"))
+    @MapKeyColumn(name = "property_key")
+    @MapKeyEnumerated(EnumType.STRING)
+    @Column(name = "property_value")
+    private Map<RepositoryPropertyKey, String> properties = new EnumMap<>(RepositoryPropertyKey.class);
 
     @Column(nullable = false)
     private Integer scanIntervalMinutes = 60;
@@ -53,6 +57,24 @@ public class ResticRepository {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    /**
+     * Get a property value by key.
+     */
+    public String getProperty(RepositoryPropertyKey key) {
+        return properties.get(key);
+    }
+
+    /**
+     * Set a property value. If value is null or blank, the property is removed.
+     */
+    public void setProperty(RepositoryPropertyKey key, String value) {
+        if (value == null || value.isBlank()) {
+            properties.remove(key);
+        } else {
+            properties.put(key, value);
+        }
+    }
 
     @PrePersist
     protected void onCreate() {

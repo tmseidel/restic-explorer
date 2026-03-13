@@ -1,5 +1,6 @@
 package org.remus.resticexplorer.restic;
 
+import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.stereotype.Component;
 
@@ -17,14 +18,17 @@ public class ResticS3Provider implements ResticRepositoryProvider {
     @Override
     public Map<String, String> buildEnvironment(ResticRepository repository) {
         Map<String, String> env = new HashMap<>();
-        if (repository.getS3AccessKey() != null) {
-            env.put("AWS_ACCESS_KEY_ID", repository.getS3AccessKey());
+        String accessKey = repository.getProperty(RepositoryPropertyKey.S3_ACCESS_KEY);
+        if (accessKey != null) {
+            env.put("AWS_ACCESS_KEY_ID", accessKey);
         }
-        if (repository.getS3SecretKey() != null) {
-            env.put("AWS_SECRET_ACCESS_KEY", repository.getS3SecretKey());
+        String secretKey = repository.getProperty(RepositoryPropertyKey.S3_SECRET_KEY);
+        if (secretKey != null) {
+            env.put("AWS_SECRET_ACCESS_KEY", secretKey);
         }
-        if (repository.getS3Region() != null && !repository.getS3Region().isBlank()) {
-            env.put("AWS_DEFAULT_REGION", repository.getS3Region());
+        String region = repository.getProperty(RepositoryPropertyKey.S3_REGION);
+        if (region != null && !region.isBlank()) {
+            env.put("AWS_DEFAULT_REGION", region);
         }
         env.put("RESTIC_PASSWORD", repository.getRepositoryPassword());
         return env;

@@ -23,7 +23,7 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 
 ### Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.8+
 - [restic](https://restic.readthedocs.io/en/stable/020_installation.html) installed on the system
 
