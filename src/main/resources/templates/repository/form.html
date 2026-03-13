@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Repository')}"></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Repository')}"><title>Repository</title></head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
 
 <main class="container mt-4 flex-grow-1">
     <nav aria-label="breadcrumb">
@@ -57,11 +57,14 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="repositoryPassword" class="form-label"><span th:text="#{repository.form.password}">Repository Password</span> <span class="text-danger">*</span></label>
+                            <label for="repositoryPassword" class="form-label"><span th:text="#{repository.form.password}">Repository Password</span>
+                                <span class="text-danger" th:if="${repositoryForm.id == null}">*</span></label>
                             <input type="password" class="form-control" id="repositoryPassword" th:field="*{repositoryPassword}"
-                                   th:classappend="${#fields.hasErrors('repositoryPassword')} ? 'is-invalid' : ''">
+                                   th:classappend="${#fields.hasErrors('repositoryPassword')} ? 'is-invalid' : ''"
+                                   th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('repositoryPassword')}" th:errors="*{repositoryPassword}"></div>
-                            <div class="form-text" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
+                            <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
+                            <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
                         </div>
 
                         <fieldset class="border rounded p-3 mb-3">
@@ -74,7 +77,9 @@
 
                             <div class="mb-3">
                                 <label for="s3SecretKey" class="form-label" th:text="#{repository.form.s3.secretKey}">Secret Key</label>
-                                <input type="password" class="form-control" id="s3SecretKey" th:field="*{s3SecretKey}">
+                                <input type="password" class="form-control" id="s3SecretKey" th:field="*{s3SecretKey}"
+                                       th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
+                                <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
                             </div>
 
                             <div class="mb-3">

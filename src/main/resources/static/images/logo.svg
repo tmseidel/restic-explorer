@@ -6,7 +6,7 @@
     </linearGradient>
   </defs>
   <!-- Background circle -->
-  <circle cx="50" cy="50" r="46" fill="url(#grad)" stroke="#1a3a8f" stroke-width="2"/>
+  <circle cx="50" cy="50" r="46" fill="url(#grad)" stroke="#6c8cef" stroke-width="2"/>
   <!-- Shield shape -->
   <path d="M50 15 L75 28 L75 50 C75 68 63 80 50 85 C37 80 25 68 25 50 L25 28 Z"
         fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/>

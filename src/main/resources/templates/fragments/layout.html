@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Main navigation">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
             <img th:src="@{/images/logo.svg}" alt="Logo" width="32" height="32" class="me-2">

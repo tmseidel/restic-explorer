@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<!-- Sortable table header fragment -->
+<th th:fragment="sortableHeader(field, label, page, baseUrl)"
+    class="sortable-header">
+    <a th:with="
+        currentSort=${page.sort.getOrderFor(field)},
+        currentDir=${currentSort != null ? currentSort.direction.name() : ''},
+        nextDir=${currentDir == 'ASC' ? 'desc' : 'asc'},
+        sortParam=${field + ',' + nextDir}"
+       th:href="@{${baseUrl}(page=${page.number},size=${page.size},sort=${sortParam})}"
+       class="text-decoration-none text-body d-flex align-items-center gap-1">
+        <span th:text="#{${label}}">Column</span>
+        <i th:if="${currentDir == 'ASC'}" class="bi bi-sort-up"></i>
+        <i th:if="${currentDir == 'DESC'}" class="bi bi-sort-down"></i>
+        <i th:if="${currentDir == ''}" class="bi bi-arrow-down-up text-muted small"></i>
+    </a>
+</th>
+
+<!-- Pagination controls fragment -->
+<nav th:fragment="controls(page, baseUrl)" aria-label="Page navigation"
+     th:if="${page.totalPages > 1}" class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
+    <small class="text-muted"
+           th:with="first=${page.number * page.size + 1}, last=${page.number * page.size + page.numberOfElements}, sortStr=${page.sort.isSorted() ? page.sort.iterator().next().property + ',' + page.sort.iterator().next().direction.name().toLowerCase() : ''}">
+        <span th:text="#{pagination.showing}">Showing</span>
+        <strong th:text="${first}">1</strong>–<strong th:text="${last}">10</strong>
+        <span th:text="#{pagination.of}">of</span>
+        <strong th:text="${page.totalElements}">100</strong>
+    </small>
+    <ul class="pagination pagination-sm mb-0"
+        th:with="sortStr=${page.sort.isSorted() ? page.sort.iterator().next().property + ',' + page.sort.iterator().next().direction.name().toLowerCase() : ''}">
+        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+            <a class="page-link"
+               th:href="${sortStr != ''} ? @{${baseUrl}(page=${page.number - 1},size=${page.size},sort=${sortStr})} : @{${baseUrl}(page=${page.number - 1},size=${page.size})}"
+               th:text="#{pagination.previous}">Previous</a>
+        </li>
+        <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+            class="page-item" th:classappend="${i == page.number} ? 'active'">
+            <a class="page-link"
+               th:href="${sortStr != ''} ? @{${baseUrl}(page=${i},size=${page.size},sort=${sortStr})} : @{${baseUrl}(page=${i},size=${page.size})}"
+               th:text="${i + 1}">1</a>
+        </li>
+        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+            <a class="page-link"
+               th:href="${sortStr != ''} ? @{${baseUrl}(page=${page.number + 1},size=${page.size},sort=${sortStr})} : @{${baseUrl}(page=${page.number + 1},size=${page.size})}"
+               th:text="#{pagination.next}">Next</a>
+        </li>
+    </ul>
+</nav>
+
+</html>
+

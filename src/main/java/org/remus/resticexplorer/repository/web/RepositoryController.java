@@ -8,6 +8,9 @@ import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.RepositoryType;
 import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,8 +26,9 @@ public class RepositoryController {
     private final GroupService groupService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("repositories", repositoryService.findAll());
+    public String list(Model model,
+                       @PageableDefault(size = 12, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        model.addAttribute("page", repositoryService.findAll(pageable));
         model.addAttribute("groups", groupService.findAll());
         return "repository/list";
     }
@@ -46,9 +50,9 @@ public class RepositoryController {
         form.setName(repo.getName());
         form.setType(repo.getType());
         form.setUrl(repo.getUrl());
-        form.setRepositoryPassword(repo.getRepositoryPassword());
+        // Password fields are left null — Thymeleaf does not render values for type="password".
+        // On submit, blank means "keep existing value" (handled in save()).
         form.setS3AccessKey(repo.getProperty(RepositoryPropertyKey.S3_ACCESS_KEY));
-        form.setS3SecretKey(repo.getProperty(RepositoryPropertyKey.S3_SECRET_KEY));
         form.setS3Region(repo.getProperty(RepositoryPropertyKey.S3_REGION));
         form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
         form.setEnabled(repo.isEnabled());
@@ -63,13 +67,21 @@ public class RepositoryController {
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute RepositoryForm form,
                        BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+
+        // Manual validation: repositoryPassword is required only for new repositories
+        boolean isCreate = form.getId() == null;
+        if (isCreate && !org.springframework.util.StringUtils.hasText(form.getRepositoryPassword())) {
+            result.rejectValue("repositoryPassword", "validation.password.required",
+                    "Repository password is required.");
+        }
+
         if (result.hasErrors()) {
             model.addAttribute("repositoryTypes", RepositoryType.values());
             model.addAttribute("groups", groupService.findAll());
             return "repository/form";
         }
         ResticRepository repo;
-        if (form.getId() != null) {
+        if (!isCreate) {
             repo = repositoryService.findById(form.getId())
                     .orElseThrow(() -> new RepositoryNotFoundException(form.getId()));
         } else {
@@ -78,9 +90,22 @@ public class RepositoryController {
         repo.setName(form.getName());
         repo.setType(form.getType());
         repo.setUrl(form.getUrl());
-        repo.setRepositoryPassword(form.getRepositoryPassword());
+
+        // Preserve existing sensitive values when the field is left empty or contains the sentinel placeholder
+        if (!isCreate) {
+            if (org.springframework.util.StringUtils.hasText(form.getRepositoryPassword())
+                    && RepositoryForm.isChanged(form.getRepositoryPassword())) {
+                repo.setRepositoryPassword(form.getRepositoryPassword());
+            }
+            if (org.springframework.util.StringUtils.hasText(form.getS3SecretKey())
+                    && RepositoryForm.isChanged(form.getS3SecretKey())) {
+                repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
+            }
+        } else {
+            repo.setRepositoryPassword(form.getRepositoryPassword());
+            repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
+        }
         repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, form.getS3AccessKey());
-        repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
         repo.setProperty(RepositoryPropertyKey.S3_REGION, form.getS3Region());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setEnabled(form.isEnabled());

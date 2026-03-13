@@ -9,6 +9,12 @@ import org.remus.resticexplorer.repository.data.RepositoryType;
 @Data
 public class RepositoryForm {
 
+    /**
+     * Sentinel value used for password/secret fields in edit mode.
+     * If the form is submitted with this value, the existing DB value is kept.
+     */
+    public static final String SENSITIVE_PLACEHOLDER = "••••••••";
+
     private Long id;
 
     @NotBlank(message = "{validation.name.required}")
@@ -20,7 +26,7 @@ public class RepositoryForm {
     @NotBlank(message = "{validation.url.required}")
     private String url;
 
-    @NotBlank(message = "{validation.password.required}")
+    // Validated manually in controller: required only for create, optional for edit
     private String repositoryPassword;
 
     private String s3AccessKey;
@@ -36,4 +42,12 @@ public class RepositoryForm {
     private Long groupId;
 
     private String comment;
+
+    /**
+     * Returns true if the given value is different from the sentinel placeholder
+     * (i.e. the sensitive field has been changed).
+     */
+    public static boolean isChanged(String value) {
+        return !SENSITIVE_PLACEHOLDER.equals(value);
+    }
 }

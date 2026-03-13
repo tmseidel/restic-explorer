@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.config.exception.GroupNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,8 +22,9 @@ public class GroupController {
     private final GroupService groupService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("groups", groupService.findAll());
+    public String list(Model model,
+                       @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        model.addAttribute("page", groupService.findAll(pageable));
         return "group/list";
     }
 

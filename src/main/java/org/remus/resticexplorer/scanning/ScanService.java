@@ -7,6 +7,8 @@ import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.restic.ResticCommandService;
 import org.remus.resticexplorer.scanning.data.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,10 +91,6 @@ public class ScanService {
             if (stats.containsKey("total_size")) {
                 totalSize = ((Number) stats.get("total_size")).longValue();
             }
-            long totalFiles = 0;
-            if (stats.containsKey("total_file_count")) {
-                totalFiles = ((Number) stats.get("total_file_count")).longValue();
-            }
 
             scanResult.setStatus(ScanResult.ScanStatus.SUCCESS);
             scanResult.setSnapshotCount(snapshots.size());
@@ -115,6 +113,14 @@ public class ScanService {
         return snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);
     }
 
+    public Page<Snapshot> getSnapshots(Long repositoryId, Pageable pageable) {
+        return snapshotRepository.findByRepositoryId(repositoryId, pageable);
+    }
+
+    public Optional<Snapshot> getSnapshot(Long repositoryId, String snapshotId) {
+        return snapshotRepository.findByRepositoryIdAndSnapshotId(repositoryId, snapshotId);
+    }
+
     public Optional<ScanResult> getLastScanResult(Long repositoryId) {
         return scanResultRepository.findTopByRepositoryIdOrderByScannedAtDesc(repositoryId);
     }
@@ -125,10 +131,6 @@ public class ScanService {
 
     public long getSnapshotCount(Long repositoryId) {
         return snapshotRepository.countByRepositoryId(repositoryId);
-    }
-
-    public List<ScanResult> getAllLatestScanResults() {
-        return scanResultRepository.findAll();
     }
 
     private LocalDateTime parseResticTime(String timeStr) {

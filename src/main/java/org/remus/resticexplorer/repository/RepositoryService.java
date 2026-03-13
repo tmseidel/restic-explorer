@@ -6,6 +6,8 @@ import org.remus.resticexplorer.config.crypto.EncryptionService;
 import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.repository.data.ResticRepositoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,12 @@ public class RepositoryService {
         List<ResticRepository> repos = repositoryRepository.findAll();
         repos.forEach(this::decryptSensitiveProperties);
         return repos;
+    }
+
+    public Page<ResticRepository> findAll(Pageable pageable) {
+        Page<ResticRepository> page = repositoryRepository.findAll(pageable);
+        page.getContent().forEach(this::decryptSensitiveProperties);
+        return page;
     }
 
     public List<ResticRepository> findAllEnabled() {
