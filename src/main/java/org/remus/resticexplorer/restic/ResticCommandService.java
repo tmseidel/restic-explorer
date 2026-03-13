@@ -120,9 +120,10 @@ public class ResticCommandService {
             }
 
             return stdout;
-        } catch (ResticCommandException e) {
-            throw e;
         } catch (Exception e) {
+            if (e instanceof ResticCommandException rce) {
+                throw rce;
+            }
             throw new ResticCommandException("Failed to execute restic command: " + e.getMessage(), e);
         }
     }
