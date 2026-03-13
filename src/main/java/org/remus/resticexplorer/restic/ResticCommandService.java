@@ -1,7 +1,5 @@
 package org.remus.resticexplorer.restic;
 
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.remus.resticexplorer.config.exception.ProviderNotFoundException;
 import org.remus.resticexplorer.config.exception.ResticCommandException;
@@ -9,10 +7,19 @@ import org.remus.resticexplorer.config.exception.ResticCommandTimeoutException;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -116,7 +123,12 @@ public class ResticCommandService {
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
-                throw new ResticCommandException("Restic command failed (exit code " + exitCode + "): " + stderr);
+                String message = "Restic command failed (exit code " + exitCode + "): " + stderr;
+                if (stderr.contains("unsupported repository version")) {
+                    message = "The repository uses a format not supported by the installed restic version. "
+                            + "Please upgrade restic to the latest release. Details: " + stderr.trim();
+                }
+                throw new ResticCommandException(message);
             }
 
             return stdout;
