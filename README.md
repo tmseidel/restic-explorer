@@ -18,8 +18,15 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 - **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
 
 ## Screenshots
-
+### Dashboard
+The dashboard provides a high-level overview of all configured repositories, including the total number of snapshots and the status of the last scan (OK, Failed, Pending). Admins can quickly navigate to the snapshot browser or trigger a manual scan.
 ![Dashboard](docs/screenshot_dashboard.png)
+### Snapshot Browser
+The snapshot browser lists all cached snapshots for a selected repository, showing key details such as snapshot ID, timestamp, hostname, paths, and tags. Admins can trigger a re-scan or download specific snapshots directly from this interface.
+![Snapshots](docs/screenshot_snapshots.png)
+### Snapshot Details
+Clicking on a snapshot opens a detailed view with all metadata and a download option (admin only
+![Snapshots-Details](docs/screenshot_snapshot.png)
 
 ## Quick Start
 
