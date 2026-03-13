@@ -51,6 +51,61 @@ docker compose up --build -d
 
 The application will be available at [http://localhost:8080](http://localhost:8080).
 
+### Run with Docker Hub Image
+
+A pre-built image is available on Docker Hub at [`tmseidel/restic-explorer`](https://hub.docker.com/r/tmseidel/restic-explorer).
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  app:
+    image: tmseidel/restic-explorer:latest
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: resticexplorer
+      DB_USER: resticexplorer
+      DB_PASSWORD: resticexplorer
+      RESTIC_ENCRYPTION_KEY: # optional, generate with: openssl rand -base64 32
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/data
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: resticexplorer
+      POSTGRES_USER: resticexplorer
+      POSTGRES_PASSWORD: resticexplorer
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resticexplorer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  db-data:
+```
+
+Then start it:
+
+```bash
+docker compose up -d
+```
+
+The application will be available at [http://localhost:8080](http://localhost:8080).
+
 ## User Guide
 
 ### 1. Initial Setup
