@@ -8,6 +8,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -42,6 +43,7 @@ class SetupControllerTest {
     @Test
     void testProcessSetup() throws Exception {
         mockMvc.perform(post("/setup")
+                        .with(csrf())
                         .param("password", "testpassword123")
                         .param("confirmPassword", "testpassword123"))
                 .andExpect(status().is3xxRedirection())
@@ -51,6 +53,7 @@ class SetupControllerTest {
     @Test
     void testProcessSetupPasswordMismatch() throws Exception {
         mockMvc.perform(post("/setup")
+                        .with(csrf())
                         .param("password", "testpassword123")
                         .param("confirmPassword", "differentpassword"))
                 .andExpect(status().isOk())
@@ -60,6 +63,7 @@ class SetupControllerTest {
     @Test
     void testProcessSetupTooShortPassword() throws Exception {
         mockMvc.perform(post("/setup")
+                        .with(csrf())
                         .param("password", "short")
                         .param("confirmPassword", "short"))
                 .andExpect(status().isOk())
