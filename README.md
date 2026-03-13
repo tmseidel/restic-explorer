@@ -12,7 +12,9 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 - **Snapshot Browser** – View all snapshots with details (hostname, paths, tags, timestamps)
 - **Snapshot Download** – Admin-only download of specific snapshots as tar archives
 - **Single Admin Account** – Simple authentication with password setup on first launch
+- **Encrypted Sensitive Data** – Repository passwords and S3 credentials encrypted at rest using AES-256-GCM
 - **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache status
+- **Internationalization** – All UI text externalized via message bundles; add new languages by adding `messages_xx.properties`
 - **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
 
 ## Screenshots
@@ -121,6 +123,33 @@ The custom `resticMetadata` health indicator reports:
 | `restic.binary` | `restic` | Path to the restic binary |
 | `restic.timeout` | `300` | Timeout in seconds for restic commands |
 | `restic.scan.check-interval` | `60000` | Interval in ms to check for due scans |
+| `restic.encryption.key` | *(empty)* | Base64-encoded AES key for encrypting sensitive data at rest (16/24/32 bytes) |
+
+### Encryption of Sensitive Data
+
+Repository passwords and S3 credentials (access key, secret key) are encrypted at rest in the database using AES-GCM when an encryption key is configured.
+
+**Generate a key:**
+
+```bash
+openssl rand -base64 32
+```
+
+**Configure via environment variable (recommended):**
+
+```bash
+export RESTIC_ENCRYPTION_KEY="your-generated-base64-key"
+```
+
+Or set in `application.properties`:
+
+```properties
+restic.encryption.key=your-generated-base64-key
+```
+
+> ⚠️ **Important**: Without an encryption key, sensitive data is stored in plain text. Always configure encryption in production.
+> 
+> The system gracefully handles legacy unencrypted data — existing plain-text values will be readable even after encryption is enabled, and will be encrypted upon the next save.
 
 ### Docker Environment Variables
 
@@ -131,6 +160,7 @@ The custom `resticMetadata` health indicator reports:
 | `DB_NAME` | `resticexplorer` | Database name |
 | `DB_USER` | `resticexplorer` | Database user |
 | `DB_PASSWORD` | `resticexplorer` | Database password |
+| `RESTIC_ENCRYPTION_KEY` | *(empty)* | Base64-encoded AES key for encrypting sensitive data at rest |
 
 ## Deployment
 
@@ -172,7 +202,9 @@ mvn test
 ```
 src/main/java/org/remus/resticexplorer/
 ├── ResticExplorerApplication.java     # Main application entry point
-├── config/                            # Security & web configuration
+├── config/                            # Security, web config & encryption
+│   ├── crypto/                        # AES-GCM encryption service & converter
+│   └── exception/                     # Custom exceptions & global handler
 ├── admin/                             # Admin feature (auth, setup)
 │   ├── web/                           # Controllers, DTOs
 │   ├── data/                          # JPA entities, repositories

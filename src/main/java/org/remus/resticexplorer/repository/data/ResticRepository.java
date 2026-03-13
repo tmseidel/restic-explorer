@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.remus.resticexplorer.config.crypto.EncryptedStringConverter;
+
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.Map;
@@ -30,13 +32,14 @@ public class ResticRepository {
     private String url;
 
     @Column(nullable = false)
+    @Convert(converter = EncryptedStringConverter.class)
     private String repositoryPassword;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "repository_properties", joinColumns = @JoinColumn(name = "repository_id"))
     @MapKeyColumn(name = "property_key")
     @MapKeyEnumerated(EnumType.STRING)
-    @Column(name = "property_value")
+    @Column(name = "property_value", length = 1024)
     private Map<RepositoryPropertyKey, String> properties = new EnumMap<>(RepositoryPropertyKey.class);
 
     @Column(nullable = false)
