@@ -33,6 +33,17 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
+    @ExceptionHandler(SnapshotNotFoundException.class)
+    public ModelAndView handleSnapshotNotFound(SnapshotNotFoundException ex) {
+        log.warn("Snapshot not found: {}", ex.getMessage());
+        ModelAndView mav = new ModelAndView("error");
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        mav.addObject("status", 404);
+        mav.addObject("error", "Not Found");
+        mav.addObject("message", ex.getMessage());
+        return mav;
+    }
+
     @ExceptionHandler(ProviderNotFoundException.class)
     public ModelAndView handleProviderNotFound(ProviderNotFoundException ex) {
         log.error("Provider not found: {}", ex.getMessage());
