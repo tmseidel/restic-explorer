@@ -20,7 +20,7 @@ docker compose up --build -d # Docker – PostgreSQL + restic in container
 
 ## Conventions
 - Controllers return template paths matching folder structure: `repository/form`, `scanning/dashboard`, `group/list`.
-- All UI strings via message keys in `src/main/resources/messages.properties` — no hardcoded text.
+- All user-visible text in Thymeleaf templates and flash messages comes from message keys in `src/main/resources/messages.properties` — backend exception messages may be plain strings.
 - Admin actions protected in **both** `SecurityConfig` and template (`sec:authorize`).
 - Errors handled view-based: `GlobalExceptionHandler` → `error` template + HTTP status.
 
