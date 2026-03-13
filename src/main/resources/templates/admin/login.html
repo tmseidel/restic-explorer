@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="text-center mb-4">
+                <img th:src="@{/images/logo.svg}" alt="Logo" width="64" height="64" class="mb-3">
+                <h3>Restic Explorer</h3>
+            </div>
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3">Admin Login</h5>
+
+                    <div th:if="${param.setup}" class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> Admin account created. Please log in.
+                    </div>
+                    <div th:if="${param.error}" class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle"></i> Invalid username or password.
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> You have been logged out.
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="admin" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" autofocus>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a th:href="@{/}" class="text-muted">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

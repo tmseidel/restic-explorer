@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: resticexplorer
+      DB_USER: resticexplorer
+      DB_PASSWORD: resticexplorer
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/data
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: resticexplorer
+      POSTGRES_USER: resticexplorer
+      POSTGRES_PASSWORD: resticexplorer
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resticexplorer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  db-data:
