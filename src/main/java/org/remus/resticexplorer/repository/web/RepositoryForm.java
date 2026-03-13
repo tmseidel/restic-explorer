@@ -44,7 +44,8 @@ public class RepositoryForm {
     private String comment;
 
     /**
-     * Returns true if the given value is the sentinel placeholder (i.e. unchanged).
+     * Returns true if the given value is different from the sentinel placeholder
+     * (i.e. the sensitive field has been changed).
      */
     public static boolean isChanged(String value) {
         return !SENSITIVE_PLACEHOLDER.equals(value);
