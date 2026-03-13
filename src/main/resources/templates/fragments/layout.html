@@ -7,7 +7,7 @@
     <title th:text="${title} + ' - ' + #{app.name}">Restic Explorer</title>
     <script>
         (function() {
-            var theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             document.documentElement.setAttribute('data-bs-theme', theme);
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
                 document.documentElement.setAttribute('data-bs-theme', e.matches ? 'dark' : 'light');
