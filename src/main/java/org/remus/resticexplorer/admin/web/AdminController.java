@@ -29,13 +29,13 @@ public class AdminController {
     public String changePassword(@Valid @ModelAttribute ChangePasswordForm form,
                                   BindingResult result, RedirectAttributes redirectAttributes) {
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
-            result.rejectValue("confirmPassword", "mismatch", "Passwords do not match");
+            result.rejectValue("confirmPassword", "validation.password.mismatch", "Passwords do not match");
         }
         if (result.hasErrors()) {
             return "admin/index";
         }
         adminService.changePassword(form.getNewPassword());
-        redirectAttributes.addFlashAttribute("successMessage", "Password changed successfully");
+        redirectAttributes.addFlashAttribute("successMessage", "message.passwordChanged");
         return "redirect:/admin";
     }
 }

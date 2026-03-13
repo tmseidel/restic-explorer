@@ -11,24 +11,24 @@ public class RepositoryForm {
 
     private Long id;
 
-    @NotBlank(message = "Name is required")
+    @NotBlank(message = "{validation.name.required}")
     private String name;
 
-    @NotNull(message = "Repository type is required")
+    @NotNull(message = "{validation.type.required}")
     private RepositoryType type = RepositoryType.S3;
 
-    @NotBlank(message = "URL is required")
+    @NotBlank(message = "{validation.url.required}")
     private String url;
 
-    @NotBlank(message = "Repository password is required")
+    @NotBlank(message = "{validation.password.required}")
     private String repositoryPassword;
 
     private String s3AccessKey;
     private String s3SecretKey;
     private String s3Region;
 
-    @NotNull(message = "Scan interval is required")
-    @Min(value = 1, message = "Scan interval must be at least 1 minute")
+    @NotNull(message = "{validation.scanInterval.required}")
+    @Min(value = 1, message = "{validation.scanInterval.min}")
     private Integer scanIntervalMinutes = 60;
 
     private boolean enabled = true;

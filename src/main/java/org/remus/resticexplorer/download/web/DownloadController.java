@@ -2,6 +2,8 @@ package org.remus.resticexplorer.download.web;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
+import org.remus.resticexplorer.config.exception.ResticCommandException;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.restic.ResticCommandService;
@@ -27,9 +29,9 @@ public class DownloadController {
     @GetMapping("/{repositoryId}/{snapshotId}")
     public void downloadSnapshot(@PathVariable Long repositoryId,
                                   @PathVariable String snapshotId,
-                                  HttpServletResponse response) throws Exception {
+                                  HttpServletResponse response) {
         ResticRepository repo = repositoryService.findById(repositoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Repository not found: " + repositoryId));
+                .orElseThrow(() -> new RepositoryNotFoundException(repositoryId));
 
         String filename = repo.getName().replaceAll("[^a-zA-Z0-9.-]", "_") + "_" + snapshotId + ".tar";
 
@@ -39,9 +41,11 @@ public class DownloadController {
         try (InputStream is = resticCommandService.downloadSnapshot(repo, snapshotId)) {
             is.transferTo(response.getOutputStream());
             response.flushBuffer();
+        } catch (ResticCommandException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to download snapshot {} from repository {}: {}", snapshotId, repo.getName(), e.getMessage());
-            throw e;
+            throw new ResticCommandException("Failed to download snapshot: " + e.getMessage(), e);
         }
     }
 }

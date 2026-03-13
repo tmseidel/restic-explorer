@@ -3,6 +3,9 @@ package org.remus.resticexplorer.restic;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.remus.resticexplorer.config.exception.ProviderNotFoundException;
+import org.remus.resticexplorer.config.exception.ResticCommandException;
+import org.remus.resticexplorer.config.exception.ResticCommandTimeoutException;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,23 +36,31 @@ public class ResticCommandService {
         }
     }
 
-    public List<Map<String, Object>> listSnapshots(ResticRepository repository) throws Exception {
+    public List<Map<String, Object>> listSnapshots(ResticRepository repository) {
         String output = executeCommand(repository, "snapshots", "--json");
         if (output == null || output.isBlank()) {
             return Collections.emptyList();
         }
-        return objectMapper.readValue(output, new TypeReference<>() {});
+        try {
+            return objectMapper.readValue(output, new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new ResticCommandException("Failed to parse snapshots response: " + e.getMessage(), e);
+        }
     }
 
-    public Map<String, Object> getStats(ResticRepository repository) throws Exception {
+    public Map<String, Object> getStats(ResticRepository repository) {
         String output = executeCommand(repository, "stats", "--json");
         if (output == null || output.isBlank()) {
             return Collections.emptyMap();
         }
-        return objectMapper.readValue(output, new TypeReference<>() {});
+        try {
+            return objectMapper.readValue(output, new TypeReference<>() {});
+        } catch (Exception e) {
+            throw new ResticCommandException("Failed to parse stats response: " + e.getMessage(), e);
+        }
     }
 
-    public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) throws Exception {
+    public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) {
         ResticRepositoryProvider provider = getProvider(repository);
         Map<String, String> env = provider.buildEnvironment(repository);
         String repoUrl = provider.buildRepositoryUrl(repository);
@@ -60,11 +71,15 @@ public class ResticCommandService {
         pb.environment().putAll(env);
         pb.redirectErrorStream(false);
 
-        Process process = pb.start();
-        return process.getInputStream();
+        try {
+            Process process = pb.start();
+            return process.getInputStream();
+        } catch (Exception e) {
+            throw new ResticCommandException("Failed to start restic dump: " + e.getMessage(), e);
+        }
     }
 
-    private String executeCommand(ResticRepository repository, String... args) throws Exception {
+    private String executeCommand(ResticRepository repository, String... args) {
         ResticRepositoryProvider provider = getProvider(repository);
         Map<String, String> env = provider.buildEnvironment(repository);
         String repoUrl = provider.buildRepositoryUrl(repository);
@@ -81,36 +96,42 @@ public class ResticCommandService {
         pb.environment().putAll(env);
         pb.redirectErrorStream(false);
 
-        Process process = pb.start();
+        try {
+            Process process = pb.start();
 
-        String stdout;
-        String stderr;
-        try (BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-             BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String stdout;
+            String stderr;
+            try (BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                 BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 
-            stdout = readAll(stdoutReader);
-            stderr = readAll(stderrReader);
+                stdout = readAll(stdoutReader);
+                stderr = readAll(stderrReader);
+            }
+
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
+            if (!finished) {
+                process.destroyForcibly();
+                throw new ResticCommandTimeoutException(timeoutSeconds);
+            }
+
+            int exitCode = process.exitValue();
+            if (exitCode != 0) {
+                throw new ResticCommandException("Restic command failed (exit code " + exitCode + "): " + stderr);
+            }
+
+            return stdout;
+        } catch (ResticCommandException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResticCommandException("Failed to execute restic command: " + e.getMessage(), e);
         }
-
-        boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
-        if (!finished) {
-            process.destroyForcibly();
-            throw new RuntimeException("Restic command timed out after " + timeoutSeconds + " seconds");
-        }
-
-        int exitCode = process.exitValue();
-        if (exitCode != 0) {
-            throw new RuntimeException("Restic command failed (exit code " + exitCode + "): " + stderr);
-        }
-
-        return stdout;
     }
 
     private ResticRepositoryProvider getProvider(ResticRepository repository) {
         String type = repository.getType().name();
         ResticRepositoryProvider provider = providers.get(type);
         if (provider == null) {
-            throw new IllegalArgumentException("No provider found for repository type: " + type);
+            throw new ProviderNotFoundException(type);
         }
         return provider;
     }

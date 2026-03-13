@@ -7,10 +7,10 @@ import jakarta.validation.constraints.Size;
 @Data
 public class ChangePasswordForm {
 
-    @NotBlank(message = "New password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @NotBlank(message = "{validation.newPassword.required}")
+    @Size(min = 8, message = "{validation.newPassword.size}")
     private String newPassword;
 
-    @NotBlank(message = "Password confirmation is required")
+    @NotBlank(message = "{validation.confirmPassword.required}")
     private String confirmPassword;
 }

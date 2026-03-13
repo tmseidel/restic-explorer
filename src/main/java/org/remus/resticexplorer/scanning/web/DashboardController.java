@@ -1,6 +1,7 @@
 package org.remus.resticexplorer.scanning.web;
 
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
@@ -58,7 +59,7 @@ public class DashboardController {
     @GetMapping("/repositories/{id}/snapshots")
     public String repositorySnapshots(@PathVariable Long id, Model model) {
         ResticRepository repo = repositoryService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Repository not found: " + id));
+                .orElseThrow(() -> new RepositoryNotFoundException(id));
         List<Snapshot> snapshots = scanService.getSnapshots(id);
         Optional<ScanResult> lastScan = scanService.getLastScanResult(id);
 
@@ -72,7 +73,7 @@ public class DashboardController {
     public String triggerScan(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             scanService.scanRepository(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Repository scanned successfully");
+            redirectAttributes.addFlashAttribute("successMessage", "message.scanSuccess");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Scan failed: " + e.getMessage());
         }

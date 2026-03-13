@@ -2,6 +2,7 @@ package org.remus.resticexplorer.scanning;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.restic.ResticCommandService;
@@ -46,7 +47,7 @@ public class ScanService {
     @Transactional
     public void scanRepository(Long repositoryId) {
         ResticRepository repo = repositoryService.findById(repositoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Repository not found: " + repositoryId));
+                .orElseThrow(() -> new RepositoryNotFoundException(repositoryId));
 
         ScanResult scanResult = new ScanResult();
         scanResult.setRepositoryId(repositoryId);

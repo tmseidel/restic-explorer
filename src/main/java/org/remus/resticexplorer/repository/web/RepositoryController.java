@@ -2,6 +2,7 @@ package org.remus.resticexplorer.repository.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
@@ -39,7 +40,7 @@ public class RepositoryController {
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         ResticRepository repo = repositoryService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Repository not found: " + id));
+                .orElseThrow(() -> new RepositoryNotFoundException(id));
         RepositoryForm form = new RepositoryForm();
         form.setId(repo.getId());
         form.setName(repo.getName());
@@ -70,7 +71,7 @@ public class RepositoryController {
         ResticRepository repo;
         if (form.getId() != null) {
             repo = repositoryService.findById(form.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Repository not found: " + form.getId()));
+                    .orElseThrow(() -> new RepositoryNotFoundException(form.getId()));
         } else {
             repo = new ResticRepository();
         }
@@ -90,14 +91,14 @@ public class RepositoryController {
             repo.setGroup(null);
         }
         repositoryService.save(repo);
-        redirectAttributes.addFlashAttribute("successMessage", "Repository saved successfully");
+        redirectAttributes.addFlashAttribute("successMessage", "repository.saved");
         return "redirect:/repositories";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         repositoryService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Repository deleted successfully");
+        redirectAttributes.addFlashAttribute("successMessage", "repository.deleted");
         return "redirect:/repositories";
     }
 }

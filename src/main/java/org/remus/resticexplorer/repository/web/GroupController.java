@@ -2,6 +2,7 @@ package org.remus.resticexplorer.repository.web;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.exception.GroupNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.springframework.stereotype.Controller;
@@ -32,7 +33,7 @@ public class GroupController {
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
         RepositoryGroup group = groupService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Group not found: " + id));
+                .orElseThrow(() -> new GroupNotFoundException(id));
         GroupForm form = new GroupForm();
         form.setId(group.getId());
         form.setName(group.getName());
@@ -50,21 +51,21 @@ public class GroupController {
         RepositoryGroup group;
         if (form.getId() != null) {
             group = groupService.findById(form.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Group not found: " + form.getId()));
+                    .orElseThrow(() -> new GroupNotFoundException(form.getId()));
         } else {
             group = new RepositoryGroup();
         }
         group.setName(form.getName());
         group.setDescription(form.getDescription());
         groupService.save(group);
-        redirectAttributes.addFlashAttribute("successMessage", "Group saved successfully");
+        redirectAttributes.addFlashAttribute("successMessage", "group.saved");
         return "redirect:/groups";
     }
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         groupService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Group deleted successfully");
+        redirectAttributes.addFlashAttribute("successMessage", "group.deleted");
         return "redirect:/groups";
     }
 }

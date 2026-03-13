@@ -8,7 +8,7 @@ public class GroupForm {
 
     private Long id;
 
-    @NotBlank(message = "Group name is required")
+    @NotBlank(message = "{validation.groupName.required}")
     private String name;
 
     private String description;

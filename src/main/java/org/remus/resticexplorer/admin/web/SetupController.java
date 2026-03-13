@@ -34,7 +34,7 @@ public class SetupController {
             return "redirect:/";
         }
         if (!setupForm.getPassword().equals(setupForm.getConfirmPassword())) {
-            result.rejectValue("confirmPassword", "mismatch", "Passwords do not match");
+            result.rejectValue("confirmPassword", "validation.password.mismatch", "Passwords do not match");
         }
         if (result.hasErrors()) {
             return "setup/index";
