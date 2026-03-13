@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Groups')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-collection"></i> <span th:text="#{group.title}">Repository Groups</span></h2>
+        <a th:href="@{/groups/new}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> <span th:text="#{group.add}">Add Group</span>
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle"></i> <span th:text="#{${successMessage}}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${#lists.isEmpty(groups)}" class="text-center text-muted mt-5">
+        <i class="bi bi-collection" style="font-size: 4rem;"></i>
+        <p class="mt-3 fs-5" th:text="#{group.empty}">No groups configured yet.</p>
+        <a th:href="@{/groups/new}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> <span th:text="#{group.addFirst}">Create Your First Group</span>
+        </a>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(groups)}" class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th th:text="#{group.table.name}">Name</th>
+                    <th th:text="#{group.table.description}">Description</th>
+                    <th th:text="#{group.table.actions}">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="group : ${groups}">
+                    <td th:text="${group.name}">Group</td>
+                    <td th:text="${group.description}" class="text-muted">Description</td>
+                    <td>
+                        <a th:href="@{/groups/{id}/edit(id=${group.id})}"
+                           class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i> <span th:text="#{group.edit}">Edit</span>
+                        </a>
+                        <form th:action="@{/groups/{id}/delete(id=${group.id})}" method="post" class="d-inline"
+                              th:attr="onsubmit='return confirm(\'' + #{group.deleteConfirm} + '\')'">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> <span th:text="#{group.delete}">Delete</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

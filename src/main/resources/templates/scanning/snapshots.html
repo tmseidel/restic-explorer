@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Snapshots')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}" th:text="#{nav.dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/repositories}" th:text="#{nav.repositories}">Repositories</a></li>
+            <li class="breadcrumb-item active" th:text="${repository.name}">Repository</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-camera"></i> <span th:text="#{snapshot.title}">Snapshots</span>: <span th:text="${repository.name}">Repository</span></h2>
+        <div sec:authorize="hasRole('ADMIN')">
+            <form th:action="@{/repositories/{id}/scan(id=${repository.id})}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-arrow-clockwise"></i> <span th:text="#{snapshot.scanNow}">Scan Now</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle"></i> <span th:text="#{${successMessage}}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Repository Info -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.type}">Type:</strong> <span class="badge bg-secondary" th:text="${repository.type.displayName}">S3</span>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.url}">URL:</strong> <code th:text="${repository.url}">s3://...</code>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.lastScan}">Last Scan:</strong>
+                    <span th:if="${repository.lastScanned != null}"
+                          th:text="${#temporals.format(repository.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                    <span th:if="${repository.lastScanned == null}" class="text-muted" th:text="#{snapshot.repoInfo.lastScan.never}">Never</span>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.scanStatus}">Scan Status:</strong>
+                    <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'SUCCESS'}"
+                          class="badge bg-success" th:text="#{snapshot.repoInfo.scanStatus.success}">Success</span>
+                    <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'FAILED'}"
+                          class="badge bg-danger" th:title="${lastScanResult.message}" th:text="#{snapshot.repoInfo.scanStatus.failed}">Failed</span>
+                    <span th:if="${lastScanResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.scanStatus.none}">No scans</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snapshots Table -->
+    <div class="card shadow-sm">
+        <div class="card-header"><i class="bi bi-list"></i> <span th:text="#{snapshot.table.title}">Snapshots</span></div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(snapshots)}" class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2" th:text="#{snapshot.empty}">No snapshots found. Try scanning the repository.</p>
+            </div>
+            <div th:if="${!#lists.isEmpty(snapshots)}" class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th th:text="#{snapshot.table.id}">Snapshot ID</th>
+                            <th th:text="#{snapshot.table.time}">Time</th>
+                            <th th:text="#{snapshot.table.hostname}">Hostname</th>
+                            <th th:text="#{snapshot.table.paths}">Paths</th>
+                            <th th:text="#{snapshot.table.tags}">Tags</th>
+                            <th sec:authorize="hasRole('ADMIN')" th:text="#{snapshot.table.download}">Download</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="snapshot : ${snapshots}">
+                            <td><code th:text="${snapshot.snapshotId}">abc123</code></td>
+                            <td>
+                                <span th:if="${snapshot.snapshotTime != null}"
+                                      th:text="${#temporals.format(snapshot.snapshotTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+                            </td>
+                            <td th:text="${snapshot.hostname}">host</td>
+                            <td><small th:text="${snapshot.paths}">-</small></td>
+                            <td>
+                                <span th:if="${snapshot.tags != null}" th:each="tag : ${#strings.arraySplit(snapshot.tags, ',')}"
+                                      class="badge bg-info me-1" th:text="${tag}">tag</span>
+                            </td>
+                            <td sec:authorize="hasRole('ADMIN')">
+                                <a th:href="@{/download/{repoId}/{snapshotId}(repoId=${repository.id}, snapshotId=${snapshot.snapshotId})}"
+                                   class="btn btn-sm btn-outline-primary" th:title="#{snapshot.table.download}">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

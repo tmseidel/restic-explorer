@@ -1,0 +1,38 @@
+/* Restic Explorer - Custom Styles */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand img {
+    filter: brightness(0) invert(1);
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.border-4 {
+    border-width: 4px !important;
+}
+
+.table th {
+    white-space: nowrap;
+}
+
+code {
+    word-break: break-all;
+}
+
+footer {
+    border-top: 1px solid #dee2e6;
+}
+
+.badge {
+    font-weight: 500;
+}

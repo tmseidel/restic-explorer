@@ -1,0 +1,69 @@
+---
+- name: Deploy Restic Explorer
+  hosts: restic_explorer
+  become: true
+  vars:
+    app_dir: /opt/restic-explorer
+    db_password: "{{ vault_db_password | default('change-me-in-production') }}"
+
+  tasks:
+    - name: Install Docker and Docker Compose prerequisites
+      apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker is running
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create application directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy docker-compose.yml
+      copy:
+        src: ../../docker-compose.yml
+        dest: "{{ app_dir }}/docker-compose.yml"
+        mode: "0644"
+
+    - name: Copy Dockerfile
+      copy:
+        src: ../../Dockerfile
+        dest: "{{ app_dir }}/Dockerfile"
+        mode: "0644"
+
+    - name: Copy application source
+      synchronize:
+        src: ../../
+        dest: "{{ app_dir }}/"
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=target"
+
+    - name: Create .env file
+      template:
+        src: templates/env.j2
+        dest: "{{ app_dir }}/.env"
+        mode: "0600"
+
+    - name: Build and start containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        build: always
+        state: present
+
+    - name: Wait for application to start
+      uri:
+        url: "http://localhost:8080/actuator/health"
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 30
+      delay: 5

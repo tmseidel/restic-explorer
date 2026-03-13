@@ -1,0 +1,104 @@
+package org.remus.resticexplorer.repository.web;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
+import org.remus.resticexplorer.repository.GroupService;
+import org.remus.resticexplorer.repository.RepositoryService;
+import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
+import org.remus.resticexplorer.repository.data.RepositoryType;
+import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/repositories")
+@RequiredArgsConstructor
+public class RepositoryController {
+
+    private final RepositoryService repositoryService;
+    private final GroupService groupService;
+
+    @GetMapping
+    public String list(Model model) {
+        model.addAttribute("repositories", repositoryService.findAll());
+        model.addAttribute("groups", groupService.findAll());
+        return "repository/list";
+    }
+
+    @GetMapping("/new")
+    public String showCreateForm(Model model) {
+        model.addAttribute("repositoryForm", new RepositoryForm());
+        model.addAttribute("repositoryTypes", RepositoryType.values());
+        model.addAttribute("groups", groupService.findAll());
+        return "repository/form";
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        ResticRepository repo = repositoryService.findById(id)
+                .orElseThrow(() -> new RepositoryNotFoundException(id));
+        RepositoryForm form = new RepositoryForm();
+        form.setId(repo.getId());
+        form.setName(repo.getName());
+        form.setType(repo.getType());
+        form.setUrl(repo.getUrl());
+        form.setRepositoryPassword(repo.getRepositoryPassword());
+        form.setS3AccessKey(repo.getProperty(RepositoryPropertyKey.S3_ACCESS_KEY));
+        form.setS3SecretKey(repo.getProperty(RepositoryPropertyKey.S3_SECRET_KEY));
+        form.setS3Region(repo.getProperty(RepositoryPropertyKey.S3_REGION));
+        form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
+        form.setEnabled(repo.isEnabled());
+        form.setGroupId(repo.getGroup() != null ? repo.getGroup().getId() : null);
+        form.setComment(repo.getComment());
+        model.addAttribute("repositoryForm", form);
+        model.addAttribute("repositoryTypes", RepositoryType.values());
+        model.addAttribute("groups", groupService.findAll());
+        return "repository/form";
+    }
+
+    @PostMapping("/save")
+    public String save(@Valid @ModelAttribute RepositoryForm form,
+                       BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            model.addAttribute("repositoryTypes", RepositoryType.values());
+            model.addAttribute("groups", groupService.findAll());
+            return "repository/form";
+        }
+        ResticRepository repo;
+        if (form.getId() != null) {
+            repo = repositoryService.findById(form.getId())
+                    .orElseThrow(() -> new RepositoryNotFoundException(form.getId()));
+        } else {
+            repo = new ResticRepository();
+        }
+        repo.setName(form.getName());
+        repo.setType(form.getType());
+        repo.setUrl(form.getUrl());
+        repo.setRepositoryPassword(form.getRepositoryPassword());
+        repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, form.getS3AccessKey());
+        repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
+        repo.setProperty(RepositoryPropertyKey.S3_REGION, form.getS3Region());
+        repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
+        repo.setEnabled(form.isEnabled());
+        repo.setComment(form.getComment());
+        if (form.getGroupId() != null) {
+            repo.setGroup(groupService.findById(form.getGroupId()).orElse(null));
+        } else {
+            repo.setGroup(null);
+        }
+        repositoryService.save(repo);
+        redirectAttributes.addFlashAttribute("successMessage", "repository.saved");
+        return "redirect:/repositories";
+    }
+
+    @PostMapping("/{id}/delete")
+    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        repositoryService.deleteById(id);
+        redirectAttributes.addFlashAttribute("successMessage", "repository.deleted");
+        return "redirect:/repositories";
+    }
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Repositories')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-hdd-stack"></i> <span th:text="#{repository.title}">Repositories</span></h2>
+        <a th:href="@{/repositories/new}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+            <i class="bi bi-plus-lg"></i> <span th:text="#{repository.add}">Add Repository</span>
+        </a>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle"></i> <span th:text="#{${successMessage}}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${#lists.isEmpty(repositories)}" class="text-center text-muted mt-5">
+        <i class="bi bi-inbox" style="font-size: 4rem;"></i>
+        <p class="mt-3 fs-5" th:text="#{repository.empty}">No repositories configured yet.</p>
+        <a th:href="@{/repositories/new}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+            <i class="bi bi-plus-lg"></i> <span th:text="#{repository.addFirst}">Add Your First Repository</span>
+        </a>
+    </div>
+
+    <div th:if="${!#lists.isEmpty(repositories)}" class="row">
+        <div class="col-md-6 col-lg-4 mb-4" th:each="repo : ${repositories}">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong th:text="${repo.name}">Repository</strong>
+                    <div>
+                        <span th:if="${repo.group != null}" class="badge bg-info me-1" th:text="${repo.group.name}">Group</span>
+                        <span class="badge" th:classappend="${repo.enabled} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${repo.enabled} ? #{repository.active} : #{repository.disabled}">Active</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="mb-2">
+                        <small class="text-muted"><i class="bi bi-chat-left-text"></i> <span th:text="${repo.comment}"></span></small>
+                    </div>
+                    <dl class="row mb-0">
+                        <dt class="col-5" th:text="#{repository.type}">Type</dt>
+                        <dd class="col-7"><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></dd>
+                        <dt class="col-5" th:text="#{repository.url}">URL</dt>
+                        <dd class="col-7"><code class="text-truncate d-block" th:text="${repo.url}">-</code></dd>
+                        <dt class="col-5" th:text="#{repository.scanInterval}">Scan Interval</dt>
+                        <dd class="col-7" th:text="${repo.scanIntervalMinutes + ' min'}">60 min</dd>
+                        <dt class="col-5" th:text="#{repository.lastScan}">Last Scan</dt>
+                        <dd class="col-7">
+                            <span th:if="${repo.lastScanned != null}"
+                                  th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                            <span th:if="${repo.lastScanned == null}" class="text-muted" th:text="#{repository.lastScan.never}">Never</span>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="card-footer">
+                    <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> <span th:text="#{repository.snapshots}">Snapshots</span>
+                    </a>
+                    <span sec:authorize="hasRole('ADMIN')">
+                        <a th:href="@{/repositories/{id}/edit(id=${repo.id})}"
+                           class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil"></i> <span th:text="#{repository.edit}">Edit</span>
+                        </a>
+                        <form th:action="@{/repositories/{id}/delete(id=${repo.id})}" method="post" class="d-inline"
+                              th:attr="onsubmit='return confirm(\'' + #{repository.deleteConfirm} + '\')'">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i> <span th:text="#{repository.delete}">Delete</span>
+                            </button>
+                        </form>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

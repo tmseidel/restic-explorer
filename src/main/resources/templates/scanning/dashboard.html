@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <h2><i class="bi bi-speedometer2"></i> <span th:text="#{dashboard.title}">Dashboard</span></h2>
+    <hr>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1" th:text="#{dashboard.repositories}">Repositories</h6>
+                            <h3 th:text="${totalRepositories}">0</h3>
+                        </div>
+                        <i class="bi bi-hdd-stack fs-1 text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1" th:text="#{dashboard.totalSnapshots}">Total Snapshots</h6>
+                            <h3 th:text="${totalSnapshots}">0</h3>
+                        </div>
+                        <i class="bi bi-camera fs-1 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-start border-info border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1" th:text="#{dashboard.status}">Status</h6>
+                            <h3 class="text-success" th:if="${totalRepositories > 0}"><i class="bi bi-check-circle"></i></h3>
+                            <h3 class="text-muted" th:if="${totalRepositories == 0}" th:text="#{dashboard.status.noRepos}">No repos</h3>
+                        </div>
+                        <i class="bi bi-activity fs-1 text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repository Overview -->
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list"></i> <span th:text="#{dashboard.overview}">Repository Overview</span></span>
+            <a th:href="@{/repositories/new}" class="btn btn-sm btn-primary" sec:authorize="hasRole('ADMIN')">
+                <i class="bi bi-plus-lg"></i> <span th:text="#{dashboard.addRepository}">Add Repository</span>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(repositories)}" class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2" th:text="#{dashboard.empty}">No repositories configured yet.</p>
+                <a th:href="@{/repositories/new}" class="btn btn-primary" sec:authorize="hasRole('ADMIN')">
+                    <i class="bi bi-plus-lg"></i> <span th:text="#{dashboard.addFirst}">Add Your First Repository</span>
+                </a>
+            </div>
+            <div th:if="${!#lists.isEmpty(repositories)}">
+                <!-- Grouped repositories -->
+                <div th:each="group : ${groups}" th:if="${groupedRepos.containsKey(group.id)}">
+                    <div class="bg-light border-bottom px-3 py-2">
+                        <i class="bi bi-collection"></i>
+                        <strong th:text="${group.name}">Group</strong>
+                        <span th:if="${group.description != null}" class="text-muted ms-2 small" th:text="${group.description}"></span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th th:text="#{dashboard.table.name}">Name</th>
+                                    <th th:text="#{dashboard.table.type}">Type</th>
+                                    <th th:text="#{dashboard.table.snapshots}">Snapshots</th>
+                                    <th th:text="#{dashboard.table.lastScan}">Last Scan</th>
+                                    <th th:text="#{dashboard.table.status}">Status</th>
+                                    <th th:text="#{dashboard.table.actions}">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="repo : ${groupedRepos.get(group.id)}">
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}" th:text="${repo.name}">Repo</a>
+                                        <small th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="d-block text-muted" th:text="${repo.comment}"></small>
+                                    </td>
+                                    <td><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></td>
+                                    <td th:text="${snapshotCounts[repo.id]} ?: 0">0</td>
+                                    <td>
+                                        <span th:if="${repo.lastScanned != null}" th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                                        <span th:if="${repo.lastScanned == null}" class="text-muted" th:text="#{dashboard.never}">Never</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success" th:text="#{dashboard.status.ok}">OK</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger" th:text="#{dashboard.status.failed}">Failed</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning" th:text="#{dashboard.status.scanning}">Scanning</span>
+                                        <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
+                                        <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
+                                           class="btn btn-sm btn-outline-primary" th:title="#{dashboard.viewSnapshots}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form th:action="@{/repositories/{id}/scan(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" th:title="#{dashboard.scanNow}">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- Ungrouped repositories -->
+                <div th:if="${!#lists.isEmpty(ungroupedRepos)}">
+                    <div th:if="${!#lists.isEmpty(groups)}" class="bg-light border-bottom px-3 py-2">
+                        <i class="bi bi-folder"></i>
+                        <strong th:text="#{dashboard.ungrouped}">Ungrouped</strong>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th th:text="#{dashboard.table.name}">Name</th>
+                                    <th th:text="#{dashboard.table.type}">Type</th>
+                                    <th th:text="#{dashboard.table.snapshots}">Snapshots</th>
+                                    <th th:text="#{dashboard.table.lastScan}">Last Scan</th>
+                                    <th th:text="#{dashboard.table.status}">Status</th>
+                                    <th th:text="#{dashboard.table.actions}">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="repo : ${ungroupedRepos}">
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}" th:text="${repo.name}">Repo</a>
+                                        <small th:if="${repo.comment != null && !repo.comment.isEmpty()}" class="d-block text-muted" th:text="${repo.comment}"></small>
+                                    </td>
+                                    <td><span class="badge bg-secondary" th:text="${repo.type.displayName}">S3</span></td>
+                                    <td th:text="${snapshotCounts[repo.id]} ?: 0">0</td>
+                                    <td>
+                                        <span th:if="${repo.lastScanned != null}" th:text="${#temporals.format(repo.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
+                                        <span th:if="${repo.lastScanned == null}" class="text-muted" th:text="#{dashboard.never}">Never</span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success" th:text="#{dashboard.status.ok}">OK</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger" th:text="#{dashboard.status.failed}">Failed</span>
+                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning" th:text="#{dashboard.status.scanning}">Scanning</span>
+                                        <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
+                                        <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
+                                           class="btn btn-sm btn-outline-primary" th:title="#{dashboard.viewSnapshots}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <form th:action="@{/repositories/{id}/scan(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" th:title="#{dashboard.scanNow}">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
