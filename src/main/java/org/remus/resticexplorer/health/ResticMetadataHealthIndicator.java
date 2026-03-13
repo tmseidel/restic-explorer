@@ -44,14 +44,6 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
 
             details.put("repository_" + repo.getName(), repoDetails);
 
-            scanService.getLastScanResult(repo.getId()).ifPresent(result -> {
-                if (result.getStatus() == ScanResult.ScanStatus.SUCCESS) {
-                    // counted below
-                } else if (result.getStatus() == ScanResult.ScanStatus.FAILED) {
-                    // counted below
-                }
-            });
-
             var lastResult = scanService.getLastScanResult(repo.getId());
             if (lastResult.isPresent() && lastResult.get().getStatus() == ScanResult.ScanStatus.FAILED) {
                 failedRepos++;
