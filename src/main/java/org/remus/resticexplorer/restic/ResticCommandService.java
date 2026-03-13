@@ -123,11 +123,18 @@ public class ResticCommandService {
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
-                String message = "Restic command failed (exit code " + exitCode + "): " + stderr;
-                if (stderr.contains("unsupported repository version")) {
-                    message = "The repository uses a format not supported by the installed restic version. "
-                            + "Please upgrade restic to the latest release. Details: " + stderr.trim();
+                // Log full details for operators/diagnostics.
+                log.error("Restic command failed (exit code {}), stderr: {}", exitCode, stderr);
+
+                // Build a sanitized, user-facing message without exposing raw stderr.
+                String message;
+                if (stderr != null && stderr.contains("unsupported repository version")) {
+                    // Use a stable message key that can be localized/resolved in the UI layer.
+                    message = "error.restic.unsupportedRepoVersion";
+                } else {
+                    message = "Restic command failed (exit code " + exitCode + ")";
                 }
+
                 throw new ResticCommandException(message);
             }
 
