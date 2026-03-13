@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Group')}"></head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Group')}"><title>Group</title></head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
 
 <main class="container mt-4 flex-grow-1">
     <nav aria-label="breadcrumb">

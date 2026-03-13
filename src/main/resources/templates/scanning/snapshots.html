@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Snapshots')}"></head>
+<head th:replace="~{fragments/layout :: head('Snapshots')}"><title>Snapshots</title></head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
 
 <main class="container mt-4 flex-grow-1">
     <nav aria-label="breadcrumb">
@@ -67,34 +67,36 @@
     <div class="card shadow-sm">
         <div class="card-header"><i class="bi bi-list"></i> <span th:text="#{snapshot.table.title}">Snapshots</span></div>
         <div class="card-body p-0">
-            <div th:if="${#lists.isEmpty(snapshots)}" class="p-4 text-center text-muted">
+            <div th:if="${page.totalElements == 0}" class="p-4 text-center text-muted">
                 <i class="bi bi-inbox fs-1"></i>
                 <p class="mt-2" th:text="#{snapshot.empty}">No snapshots found. Try scanning the repository.</p>
             </div>
-            <div th:if="${!#lists.isEmpty(snapshots)}" class="table-responsive">
+            <div th:if="${page.totalElements > 0}" class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th th:text="#{snapshot.table.id}">Snapshot ID</th>
-                            <th th:text="#{snapshot.table.time}">Time</th>
-                            <th th:text="#{snapshot.table.hostname}">Hostname</th>
-                            <th th:text="#{snapshot.table.paths}">Paths</th>
+                            <th th:replace="~{fragments/pagination :: sortableHeader('snapshotId', 'snapshot.table.id', ${page}, '/repositories/' + ${repository.id} + '/snapshots')}">ID</th>
+                            <th th:replace="~{fragments/pagination :: sortableHeader('snapshotTime', 'snapshot.table.time', ${page}, '/repositories/' + ${repository.id} + '/snapshots')}">Time</th>
+                            <th th:replace="~{fragments/pagination :: sortableHeader('hostname', 'snapshot.table.hostname', ${page}, '/repositories/' + ${repository.id} + '/snapshots')}">Hostname</th>
                             <th th:text="#{snapshot.table.tags}">Tags</th>
                             <th sec:authorize="hasRole('ADMIN')" th:text="#{snapshot.table.download}">Download</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="snapshot : ${snapshots}">
-                            <td><code th:text="${snapshot.snapshotId}">abc123</code></td>
+                        <tr th:each="snapshot : ${page.content}">
+                            <td>
+                                <a th:href="@{/repositories/{repoId}/snapshots/{snapshotId}(repoId=${repository.id}, snapshotId=${snapshot.snapshotId})}"
+                                   class="text-decoration-none">
+                                    <code th:text="${snapshot.snapshotId}">abc123</code>
+                                </a>
+                            </td>
                             <td>
                                 <span th:if="${snapshot.snapshotTime != null}"
                                       th:text="${#temporals.format(snapshot.snapshotTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
                             </td>
                             <td th:text="${snapshot.hostname}">host</td>
-                            <td><small th:text="${snapshot.paths}">-</small></td>
                             <td>
-                                <span th:if="${snapshot.tags != null}" th:each="tag : ${#strings.arraySplit(snapshot.tags, ',')}"
-                                      class="badge bg-info me-1" th:text="${tag}">tag</span>
+                                <span th:if="${snapshot.tags != null}" th:each="tag : ${#strings.arraySplit(snapshot.tags, ',')}" class="badge bg-info me-1" th:text="${#strings.trim(tag)}">tag</span>
                             </td>
                             <td sec:authorize="hasRole('ADMIN')">
                                 <a th:href="@{/download/{repoId}/{snapshotId}(repoId=${repository.id}, snapshotId=${snapshot.snapshotId})}"
@@ -106,6 +108,7 @@
                     </tbody>
                 </table>
             </div>
+            <div th:replace="~{fragments/pagination :: controls(${page}, '/repositories/' + ${repository.id} + '/snapshots')}"></div>
         </div>
     </div>
 </main>

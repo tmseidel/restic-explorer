@@ -1,7 +1,7 @@
 /* Restic Explorer - Custom Styles */
 
 .navbar-brand img {
-    filter: brightness(0) invert(1);
+    /* Logo SVG has blue gradient + white elements — visible on dark navbar as-is */
 }
 
 .card {
@@ -19,6 +19,15 @@
 
 .table th {
     white-space: nowrap;
+}
+
+.sortable-header a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.sortable-header a:hover {
+    text-decoration: underline;
 }
 
 code {

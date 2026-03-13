@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<head th:replace="~{fragments/layout :: head('Dashboard')}"><title>Dashboard</title></head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
 
 <main class="container mt-4 flex-grow-1">
     <h2><i class="bi bi-speedometer2"></i> <span th:text="#{dashboard.title}">Dashboard</span></h2>
@@ -39,13 +39,17 @@
             </div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-start border-info border-4">
+            <div class="card shadow-sm border-start border-4"
+                 th:classappend="${overallStatus == 'ok'} ? 'border-success' : (${overallStatus == 'failed'} ? 'border-danger' : (${overallStatus == 'scanning'} ? 'border-warning' : 'border-info'))">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1" th:text="#{dashboard.status}">Status</h6>
-                            <h3 class="text-success" th:if="${totalRepositories > 0}"><i class="bi bi-check-circle"></i></h3>
-                            <h3 class="text-muted" th:if="${totalRepositories == 0}" th:text="#{dashboard.status.noRepos}">No repos</h3>
+                            <h3 th:if="${overallStatus == 'ok'}" class="text-success"><i class="bi bi-check-circle"></i> <span th:text="#{dashboard.status.ok}">OK</span></h3>
+                            <h3 th:if="${overallStatus == 'failed'}" class="text-danger"><i class="bi bi-x-circle"></i> <span th:text="#{dashboard.status.failed}">Failed</span></h3>
+                            <h3 th:if="${overallStatus == 'scanning'}" class="text-warning"><i class="bi bi-arrow-clockwise"></i> <span th:text="#{dashboard.status.scanning}">Scanning</span></h3>
+                            <h3 th:if="${overallStatus == 'pending'}" class="text-secondary"><i class="bi bi-clock"></i> <span th:text="#{dashboard.status.pending}">Pending</span></h3>
+                            <h3 th:if="${overallStatus == 'none'}" class="text-muted" th:text="#{dashboard.status.noRepos}">No repos</h3>
                         </div>
                         <i class="bi bi-activity fs-1 text-info"></i>
                     </div>

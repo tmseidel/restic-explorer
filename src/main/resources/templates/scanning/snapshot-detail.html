@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Snapshot Detail')}"><title>Snapshot Detail</title></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}" th:text="#{nav.dashboard}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/repositories}" th:text="#{nav.repositories}">Repositories</a></li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/repositories/{id}/snapshots(id=${repository.id})}" th:text="${repository.name}">Repository</a>
+            </li>
+            <li class="breadcrumb-item active" th:text="${snapshot.snapshotId}">Snapshot</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-camera"></i> <span th:text="#{snapshot.detail.title}">Snapshot Detail</span></h2>
+        <div class="d-flex gap-2">
+            <a th:href="@{/repositories/{id}/snapshots(id=${repository.id})}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> <span th:text="#{snapshot.detail.back}">Back to Snapshots</span>
+            </a>
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/download/{repoId}/{snapshotId}(repoId=${repository.id}, snapshotId=${snapshot.snapshotId})}"
+               class="btn btn-primary">
+                <i class="bi bi-download"></i> <span th:text="#{snapshot.detail.download}">Download Snapshot</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Snapshot metadata -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3" th:text="#{snapshot.detail.id}">Snapshot ID</dt>
+                <dd class="col-sm-9"><code th:text="${snapshot.snapshotId}">abc123</code></dd>
+
+                <dt class="col-sm-3" th:text="#{snapshot.detail.time}">Time</dt>
+                <dd class="col-sm-9">
+                    <span th:if="${snapshot.snapshotTime != null}"
+                          th:text="${#temporals.format(snapshot.snapshotTime, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+                </dd>
+
+                <dt class="col-sm-3" th:text="#{snapshot.detail.hostname}">Hostname</dt>
+                <dd class="col-sm-9" th:text="${snapshot.hostname}">host</dd>
+
+                <dt class="col-sm-3" th:text="#{snapshot.detail.username}">Username</dt>
+                <dd class="col-sm-9" th:text="${snapshot.username ?: '—'}">user</dd>
+
+                <dt class="col-sm-3" th:text="#{snapshot.detail.treeHash}">Tree Hash</dt>
+                <dd class="col-sm-9"><code class="small" th:text="${snapshot.treeHash ?: '—'}">hash</code></dd>
+
+                <dt th:if="${snapshot.totalSize != null}" class="col-sm-3" th:text="#{snapshot.detail.size}">Total Size</dt>
+                <dd th:if="${snapshot.totalSize != null}" class="col-sm-9"
+                    th:text="${#numbers.formatDecimal(snapshot.totalSize / 1048576.0, 1, 'COMMA', 1, 'POINT') + ' MB'}">0 MB</dd>
+
+                <dt th:if="${snapshot.totalFileCount != null}" class="col-sm-3" th:text="#{snapshot.detail.fileCount}">File Count</dt>
+                <dd th:if="${snapshot.totalFileCount != null}" class="col-sm-9"
+                    th:text="${#numbers.formatInteger(snapshot.totalFileCount, 1, 'COMMA')}">0</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Paths -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <i class="bi bi-folder"></i> <span th:text="#{snapshot.detail.paths}">Paths</span>
+        </div>
+        <div class="card-body">
+            <div th:if="${snapshot.paths == null || snapshot.paths.isEmpty()}" class="text-muted"
+                 th:text="#{snapshot.detail.noPaths}">No paths recorded</div>
+            <ul th:if="${snapshot.paths != null && !snapshot.paths.isEmpty()}" class="list-group list-group-flush">
+                <li th:each="path : ${#strings.arraySplit(snapshot.paths, ',')}"
+                    class="list-group-item px-0">
+                    <i class="bi bi-folder2 text-muted me-1"></i>
+                    <code th:text="${#strings.trim(path)}">path</code>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tags -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <i class="bi bi-tags"></i> <span th:text="#{snapshot.detail.tags}">Tags</span>
+        </div>
+        <div class="card-body">
+            <div th:if="${snapshot.tags == null || snapshot.tags.isEmpty()}" class="text-muted"
+                 th:text="#{snapshot.detail.noTags}">No tags</div>
+            <div th:if="${snapshot.tags != null && !snapshot.tags.isEmpty()}">
+                <span th:each="tag : ${#strings.arraySplit(snapshot.tags, ',')}"
+                      class="badge bg-info me-1 mb-1" th:text="${#strings.trim(tag)}">tag</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

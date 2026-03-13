@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{fragments/layout :: head('Admin')}"></head>
+<head th:replace="~{fragments/layout :: head('Admin')}"><title>Admin</title></head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
 
 <main class="container mt-4 flex-grow-1">
     <h2><i class="bi bi-gear"></i> <span th:text="#{admin.title}">Admin Panel</span></h2>

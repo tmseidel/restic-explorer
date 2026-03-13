@@ -7,6 +7,8 @@ import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.restic.ResticCommandService;
 import org.remus.resticexplorer.scanning.data.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,6 +115,14 @@ public class ScanService {
 
     public List<Snapshot> getSnapshots(Long repositoryId) {
         return snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);
+    }
+
+    public Page<Snapshot> getSnapshots(Long repositoryId, Pageable pageable) {
+        return snapshotRepository.findByRepositoryId(repositoryId, pageable);
+    }
+
+    public Optional<Snapshot> getSnapshot(Long repositoryId, String snapshotId) {
+        return snapshotRepository.findByRepositoryIdAndSnapshotId(repositoryId, snapshotId);
     }
 
     public Optional<ScanResult> getLastScanResult(Long repositoryId) {
