@@ -43,7 +43,7 @@ public class GroupController {
 
     @PostMapping("/save")
     public String save(@Valid @ModelAttribute GroupForm form,
-                       BindingResult result, RedirectAttributes redirectAttributes) {
+                       BindingResult result, Model model, RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "group/form";
         }

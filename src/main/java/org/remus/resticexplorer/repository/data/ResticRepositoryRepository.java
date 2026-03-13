@@ -5,7 +5,4 @@ import java.util.List;
 
 public interface ResticRepositoryRepository extends JpaRepository<ResticRepository, Long> {
     List<ResticRepository> findByEnabledTrue();
-    List<ResticRepository> findByGroupIsNullOrderByNameAsc();
-    List<ResticRepository> findByGroupIdOrderByNameAsc(Long groupId);
-    List<ResticRepository> findAllByOrderByGroupNameAscNameAsc();
 }
