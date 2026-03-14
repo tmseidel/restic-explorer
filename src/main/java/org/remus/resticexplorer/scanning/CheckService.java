@@ -47,7 +47,7 @@ public class CheckService {
     }
 
     @Transactional
-    public void checkRepository(Long repositoryId) {
+    public CheckResult checkRepository(Long repositoryId) {
         ResticRepository repo = repositoryService.findById(repositoryId)
                 .orElseThrow(() -> new RepositoryNotFoundException(repositoryId));
 
@@ -73,6 +73,8 @@ public class CheckService {
             checkResult.setMessage(e.getMessage());
             checkResultRepository.save(checkResult);
         }
+
+        return checkResult;
     }
 
     public Optional<CheckResult> getLastCheckResult(Long repositoryId) {
