@@ -31,6 +31,11 @@ public class ScanResult {
 
     private Long totalSize;
 
+    private Boolean retentionPolicyFulfilled;
+
+    @Column(columnDefinition = "TEXT")
+    private String retentionPolicyViolations;
+
     private LocalDateTime scannedAt;
 
     @PrePersist

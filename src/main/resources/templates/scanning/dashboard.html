@@ -115,6 +115,10 @@
                                               class="badge bg-warning" th:text="#{dashboard.status.scanning}">Scanning</span>
                                         <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
                                         <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
+                                        <span th:if="${retentionResults[repo.id] != null && retentionResults[repo.id].fulfilled}"
+                                              class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
+                                        <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
+                                              class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
                                     </td>
                                     <td>
                                         <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
@@ -172,6 +176,10 @@
                                               class="badge bg-warning" th:text="#{dashboard.status.scanning}">Scanning</span>
                                         <span th:if="${lastScanResults[repo.id] == null}" class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
                                         <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
+                                        <span th:if="${retentionResults[repo.id] != null && retentionResults[repo.id].fulfilled}"
+                                              class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
+                                        <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
+                                              class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
                                     </td>
                                     <td>
                                         <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"

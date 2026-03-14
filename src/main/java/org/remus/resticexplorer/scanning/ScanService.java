@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class ScanService {
     private final SnapshotRepository snapshotRepository;
     private final ScanResultRepository scanResultRepository;
     private final ResticCommandService resticCommandService;
+    private final RetentionPolicyChecker retentionPolicyChecker;
 
     @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
     public void scheduledScan() {
@@ -95,6 +97,15 @@ public class ScanService {
             scanResult.setStatus(ScanResult.ScanStatus.SUCCESS);
             scanResult.setSnapshotCount(snapshots.size());
             scanResult.setTotalSize(totalSize);
+
+            // Check retention policy against the freshly saved snapshots
+            List<Snapshot> savedSnapshots = snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);
+            RetentionPolicyResult policyResult = retentionPolicyChecker.check(repo, savedSnapshots, LocalDate.now());
+            scanResult.setRetentionPolicyFulfilled(policyResult.isFulfilled());
+            if (!policyResult.getViolations().isEmpty()) {
+                scanResult.setRetentionPolicyViolations(String.join("\n", policyResult.getViolations()));
+            }
+
             scanResultRepository.save(scanResult);
 
             repo.setLastScanned(LocalDateTime.now());

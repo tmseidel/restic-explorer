@@ -9,6 +9,7 @@ Spring Boot 4 + Thymeleaf app for browsing restic backup repositories. Source: `
 - **Strategy pattern** for backends: `ResticRepositoryProvider` interface, `ResticS3Provider` impl, selected via `RepositoryType` enum. Adding a type requires: enum value + provider `@Component` + form DTO/controller/template fields.
 - **Security**: public read (dashboard, snapshots, actuator), admin-gated writes (`SecurityConfig` routes + `sec:authorize` in templates). First-run gate via `SetupInterceptorConfig` redirects to `/setup` until admin exists.
 - **Encryption**: `repositoryPassword` auto-encrypted by JPA converter (`EncryptedStringConverter`). Sensitive map properties (`RepositoryPropertyKey.isSensitive()`) encrypted/decrypted manually in `RepositoryService`. `save()` does `saveAndFlush` + `detach` before decrypting — preserve this pattern. Encryption optional (`restic.encryption.key`); `EncryptionService.decrypt()` has plaintext fallback.
+- **Retention policies**: Optional per-repository fields (`keepDaily`, `keepWeekly`, `keepMonthly`, `keepYearly`, `keepLast`) on `ResticRepository`. After each scan, `RetentionPolicyChecker` (stateless `@Service` in `scanning` package) evaluates cached snapshots against the policy via `check(repo, snapshots, referenceDate)`. Results stored on `ScanResult` (`retentionPolicyFulfilled`, `retentionPolicyViolations`). Violations are **soft warnings** (amber `bg-warning`), never errors — they do NOT affect the overall dashboard status card.
 
 ## Workflows
 ```bash

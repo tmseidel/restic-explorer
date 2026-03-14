@@ -7,6 +7,8 @@ import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.remus.resticexplorer.scanning.RetentionPolicyChecker;
+import org.remus.resticexplorer.scanning.RetentionPolicyResult;
 import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.remus.resticexplorer.scanning.data.Snapshot;
@@ -19,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ public class DashboardController {
     private final RepositoryService repositoryService;
     private final ScanService scanService;
     private final GroupService groupService;
+    private final RetentionPolicyChecker retentionPolicyChecker;
 
     @GetMapping("/")
     public String dashboard(Model model) {
@@ -39,6 +43,15 @@ public class DashboardController {
         for (ResticRepository repo : repos) {
             snapshotCounts.put(repo.getId(), scanService.getSnapshotCount(repo.getId()));
             scanService.getLastScanResult(repo.getId()).ifPresent(r -> lastScanResults.put(repo.getId(), r));
+        }
+
+        // Compute retention policy results from last scan result (stored violations)
+        Map<Long, RetentionPolicyResult> retentionResults = new HashMap<>();
+        for (ResticRepository repo : repos) {
+            RetentionPolicyResult rpr = retentionResultFromScanResult(lastScanResults.get(repo.getId()));
+            if (rpr != null) {
+                retentionResults.put(repo.getId(), rpr);
+            }
         }
 
         // Group repositories
@@ -56,6 +69,7 @@ public class DashboardController {
         model.addAttribute("ungroupedRepos", ungroupedRepos);
         model.addAttribute("snapshotCounts", snapshotCounts);
         model.addAttribute("lastScanResults", lastScanResults);
+        model.addAttribute("retentionResults", retentionResults);
         model.addAttribute("totalRepositories", repos.size());
         model.addAttribute("totalSnapshots", scanService.getTotalSnapshotCount());
 
@@ -97,6 +111,9 @@ public class DashboardController {
         model.addAttribute("repository", repo);
         model.addAttribute("page", snapshotPage);
         model.addAttribute("lastScanResult", lastScan.orElse(null));
+
+        // Retention policy result for snapshot page
+        model.addAttribute("retentionResult", retentionResultFromScanResult(lastScan.orElse(null)));
         return "scanning/snapshots";
     }
 
@@ -121,5 +138,18 @@ public class DashboardController {
             redirectAttributes.addFlashAttribute("errorMessage", "Scan failed: " + e.getMessage());
         }
         return "redirect:/repositories/" + id + "/snapshots";
+    }
+
+    private RetentionPolicyResult retentionResultFromScanResult(ScanResult scanResult) {
+        if (scanResult == null || scanResult.getRetentionPolicyFulfilled() == null) {
+            return null;
+        }
+        RetentionPolicyResult result = new RetentionPolicyResult();
+        result.setFulfilled(scanResult.getRetentionPolicyFulfilled());
+        String violations = scanResult.getRetentionPolicyViolations();
+        if (violations != null && !violations.isBlank()) {
+            result.setViolations(Arrays.asList(violations.split("\n")));
+        }
+        return result;
     }
 }

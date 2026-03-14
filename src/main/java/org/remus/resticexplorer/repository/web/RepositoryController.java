@@ -58,6 +58,11 @@ public class RepositoryController {
         form.setEnabled(repo.isEnabled());
         form.setGroupId(repo.getGroup() != null ? repo.getGroup().getId() : null);
         form.setComment(repo.getComment());
+        form.setKeepDaily(repo.getKeepDaily());
+        form.setKeepWeekly(repo.getKeepWeekly());
+        form.setKeepMonthly(repo.getKeepMonthly());
+        form.setKeepYearly(repo.getKeepYearly());
+        form.setKeepLast(repo.getKeepLast());
         model.addAttribute("repositoryForm", form);
         model.addAttribute("repositoryTypes", RepositoryType.values());
         model.addAttribute("groups", groupService.findAll());
@@ -110,6 +115,11 @@ public class RepositoryController {
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setEnabled(form.isEnabled());
         repo.setComment(form.getComment());
+        repo.setKeepDaily(form.getKeepDaily());
+        repo.setKeepWeekly(form.getKeepWeekly());
+        repo.setKeepMonthly(form.getKeepMonthly());
+        repo.setKeepYearly(form.getKeepYearly());
+        repo.setKeepLast(form.getKeepLast());
         if (form.getGroupId() != null) {
             repo.setGroup(groupService.findById(form.getGroupId()).orElse(null));
         } else {
