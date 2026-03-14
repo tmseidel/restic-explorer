@@ -25,6 +25,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Extract version from pom.xml
+        id: version
+        run: echo "VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -32,7 +36,7 @@ jobs:
           images: tmseidel/restic-explorer
           tags: |
             type=raw,value=latest
-            type=sha
+            type=raw,value=${{ steps.version.outputs.VERSION }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
