@@ -43,6 +43,13 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
             scanService.getLastScanResult(repo.getId()).ifPresent(result -> {
                 repoDetails.put("lastScanStatus", result.getStatus().name());
                 repoDetails.put("lastScanTime", result.getScannedAt());
+
+                if (result.getRetentionPolicyFulfilled() != null) {
+                    repoDetails.put("retentionPolicyFulfilled", result.getRetentionPolicyFulfilled());
+                    if (result.getRetentionPolicyViolations() != null && !result.getRetentionPolicyViolations().isBlank()) {
+                        repoDetails.put("retentionPolicyViolations", result.getRetentionPolicyViolations().split("\n"));
+                    }
+                }
             });
 
             repoDetails.put("checkEnabled", repo.getCheckIntervalMinutes() != null && repo.getCheckIntervalMinutes() > 0);

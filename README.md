@@ -177,6 +177,7 @@ The custom `resticMetadata` health indicator reports:
 - Total repositories and cached snapshots
 - Per-repository scan status and last scan time
 - Per-repository integrity check status and last check time
+- Per-repository retention policy status and violations (when a policy is configured)
 - Overall status: UP (all scans and checks successful), DOWN (any scan or check failed), UNKNOWN (no repositories)
 
 ### 8. Retention Policies
