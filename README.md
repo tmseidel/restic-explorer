@@ -8,12 +8,13 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 
 - **Repository Management** – CRUD operations for restic backup repositories (S3 supported, extensible architecture for future backends)
 - **Automated Scanning** – Configurable scheduled scans to cache restic metadata
-- **Dashboard** – Overview of all repositories, snapshot counts, and scan status
+- **Integrity Checks** – Scheduled restic consistency and integrity verification (`restic check`) with configurable intervals per repository
+- **Dashboard** – Overview of all repositories, snapshot counts, scan and integrity check status
 - **Snapshot Browser** – View all snapshots with details (hostname, paths, tags, timestamps)
 - **Snapshot Download** – Admin-only download of specific snapshots as tar archives
 - **Single Admin Account** – Simple authentication with password setup on first launch
 - **Encrypted Sensitive Data** – Repository passwords and S3 credentials encrypted at rest using AES-256-GCM
-- **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache status
+- **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache and integrity check status
 - **Internationalization** – All UI text externalized via message bundles; add new languages by adding `messages_xx.properties`
 - **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
 
@@ -128,11 +129,16 @@ On first launch, you are redirected to the **Setup** page:
 2. Navigate to **Repositories** → **Add Repository**
 3. Fill in the form:
    - **Name**: A friendly display name
+   - **Enabled**: Toggle to enable or disable the repository. When disabled, automatic scanning and integrity checks are paused.
+   - **Group**: Optionally assign the repository to a group for organizing the dashboard
    - **Repository Type**: Select S3 (more types planned)
    - **Repository URL**: The restic repository URL, e.g. `s3:https://s3.amazonaws.com/my-bucket/restic-repo`
    - **Repository Password**: The encryption password for the restic repository
    - **S3 Access Key / Secret Key / Region**: Your AWS or S3-compatible credentials
-   - **Scan Interval**: How often (in minutes) to automatically scan
+   - **Retention Policy** *(optional)*: Define expected backup frequency (see [Retention Policies](#9-retention-policies))
+   - **Comment**: Optional notes or description for the repository
+   - **Scan Interval**: How often (in minutes) to automatically scan for new snapshots
+   - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (set to `0` to disable)
 4. Click **Save**
 
 ### 3. Dashboard
@@ -140,13 +146,14 @@ On first launch, you are redirected to the **Setup** page:
 The dashboard shows:
 - Total number of repositories and snapshots
 - Per-repository scan status (OK, Failed, Pending)
-- Quick actions to view snapshots or trigger a manual scan
+- Per-repository integrity check status (OK, Failed, Pending, or disabled)
+- Quick actions to view snapshots, trigger a manual scan, or run an integrity check
 
 ### 4. Browsing Snapshots
 
 Click on a repository name or the eye icon to see all cached snapshots:
 - Snapshot ID, timestamp, hostname, paths, and tags
-- Admins can trigger a re-scan or download a snapshot
+- Admins can trigger a re-scan, run an integrity check, or download a snapshot
 
 ### 5. Downloading Snapshots
 
@@ -173,9 +180,32 @@ The application exposes Spring Actuator endpoints:
 The custom `resticMetadata` health indicator reports:
 - Total repositories and cached snapshots
 - Per-repository scan status and last scan time
-- Overall status: UP (all scans successful), DOWN (any scan failed), UNKNOWN (no repositories)
+- Per-repository integrity check status and last check time
+- Per-repository retention policy status and violations (when a policy is configured)
+- Overall status: UP (all scans and checks successful), DOWN (any scan or check failed), UNKNOWN (no repositories)
 
-### 8. Retention Policies
+### 8. Integrity Checks
+
+Restic Explorer can periodically run `restic check --read-data` to verify the consistency and integrity of your backup repositories.
+
+#### Configuration
+
+- When adding or editing a repository, set the **Check Interval** field to a non-zero value (in minutes) to enable scheduled integrity checks.
+- Set it to `0` to disable automatic integrity checks for that repository.
+
+#### Manual Trigger
+
+Admins can trigger an integrity check at any time from the **Dashboard** or the **Snapshots** page by clicking the **Check Now** button.
+
+#### Status Reporting
+
+- **Dashboard**: Each repository shows an integrity check status badge (OK, Failed, Pending, or Disabled) alongside the scan status.
+- **Snapshots page**: The repository info section displays the last check time and result.
+- **Health endpoint**: `GET /actuator/health` includes per-repository integrity check status and last check time.
+
+> ⚠️ `restic check --read-data` reads **all data** in the repository, which can take a long time and generate significant network traffic for large repositories. Choose the check interval accordingly.
+
+### 9. Retention Policies
 
 Each repository can optionally have a **retention policy** that defines expected backup frequency. The policy is purely advisory — it never deletes snapshots.
 
@@ -310,11 +340,15 @@ src/main/java/org/remus/resticexplorer/
 ├── repository/                        # Repository management feature
 │   ├── web/                           # Controllers, DTOs
 │   ├── data/                          # JPA entities, repositories
-│   └── RepositoryService.java        # Service layer
-├── scanning/                          # Scanning & metadata feature
+│   ├── RepositoryService.java        # Repository CRUD service
+│   └── GroupService.java             # Repository group management
+├── scanning/                          # Scanning, checks & retention policy
 │   ├── web/                           # Dashboard controller
-│   ├── data/                          # Snapshot, ScanResult entities
-│   └── ScanService.java              # Scheduled scanning service
+│   ├── data/                          # Snapshot, ScanResult, CheckResult entities
+│   ├── ScanService.java              # Scheduled scanning service
+│   ├── CheckService.java             # Scheduled integrity check service
+│   ├── RetentionPolicyChecker.java   # Retention policy evaluation logic
+│   └── RetentionPolicyResult.java    # Retention policy result DTO
 ├── download/                          # Snapshot download feature
 │   └── web/                           # Download controller
 ├── restic/                            # Restic CLI integration
