@@ -25,7 +25,7 @@ public class CheckService {
     private final CheckResultRepository checkResultRepository;
     private final ResticCommandService resticCommandService;
 
-    @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
+    @Scheduled(fixedDelayString = "${restic.check.check-interval:${restic.scan.check-interval:60000}}")
     public void scheduledCheck() {
         List<ResticRepository> repos = repositoryService.findAllEnabled();
         for (ResticRepository repo : repos) {
