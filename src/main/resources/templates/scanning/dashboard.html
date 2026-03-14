@@ -91,6 +91,7 @@
                                     <th th:text="#{dashboard.table.snapshots}">Snapshots</th>
                                     <th th:text="#{dashboard.table.lastScan}">Last Scan</th>
                                     <th th:text="#{dashboard.table.status}">Status</th>
+                                    <th th:text="#{dashboard.table.integrity}">Integrity</th>
                                     <th th:text="#{dashboard.table.actions}">Actions</th>
                                 </tr>
                             </thead>
@@ -117,6 +118,17 @@
                                         <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
                                     </td>
                                     <td>
+                                        <span th:if="${repo.checkIntervalMinutes == null || repo.checkIntervalMinutes == 0}" class="text-muted">—</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success" th:text="#{dashboard.status.ok}">OK</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger" th:text="#{dashboard.status.failed}">Failed</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning" th:text="#{dashboard.status.checking}">Checking</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] == null}"
+                                              class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
+                                    </td>
+                                    <td>
                                         <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
                                            class="btn btn-sm btn-outline-primary" th:title="#{dashboard.viewSnapshots}">
                                             <i class="bi bi-eye"></i>
@@ -125,6 +137,13 @@
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-success" th:title="#{dashboard.scanNow}">
                                                 <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                        <form th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0}"
+                                              th:action="@{/repositories/{id}/check(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-info" th:title="#{dashboard.checkNow}">
+                                                <i class="bi bi-shield-check"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -148,6 +167,7 @@
                                     <th th:text="#{dashboard.table.snapshots}">Snapshots</th>
                                     <th th:text="#{dashboard.table.lastScan}">Last Scan</th>
                                     <th th:text="#{dashboard.table.status}">Status</th>
+                                    <th th:text="#{dashboard.table.integrity}">Integrity</th>
                                     <th th:text="#{dashboard.table.actions}">Actions</th>
                                 </tr>
                             </thead>
@@ -174,6 +194,17 @@
                                         <span th:if="${!repo.enabled}" class="badge bg-dark ms-1" th:text="#{dashboard.status.disabled}">Disabled</span>
                                     </td>
                                     <td>
+                                        <span th:if="${repo.checkIntervalMinutes == null || repo.checkIntervalMinutes == 0}" class="text-muted">—</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'SUCCESS'}"
+                                              class="badge bg-success" th:text="#{dashboard.status.ok}">OK</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'FAILED'}"
+                                              class="badge bg-danger" th:text="#{dashboard.status.failed}">Failed</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] != null && lastCheckResults[repo.id].status.name() == 'IN_PROGRESS'}"
+                                              class="badge bg-warning" th:text="#{dashboard.status.checking}">Checking</span>
+                                        <span th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0 && lastCheckResults[repo.id] == null}"
+                                              class="badge bg-secondary" th:text="#{dashboard.status.pending}">Pending</span>
+                                    </td>
+                                    <td>
                                         <a th:href="@{/repositories/{id}/snapshots(id=${repo.id})}"
                                            class="btn btn-sm btn-outline-primary" th:title="#{dashboard.viewSnapshots}">
                                             <i class="bi bi-eye"></i>
@@ -182,6 +213,13 @@
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-success" th:title="#{dashboard.scanNow}">
                                                 <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                        <form th:if="${repo.checkIntervalMinutes != null && repo.checkIntervalMinutes > 0}"
+                                              th:action="@{/repositories/{id}/check(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                            <button type="submit" class="btn btn-sm btn-outline-info" th:title="#{dashboard.checkNow}">
+                                                <i class="bi bi-shield-check"></i>
                                             </button>
                                         </form>
                                     </td>

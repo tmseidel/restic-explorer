@@ -45,7 +45,12 @@ public class ResticRepository {
     @Column(nullable = false)
     private Integer scanIntervalMinutes = 60;
 
+    @Column(nullable = false)
+    private Integer checkIntervalMinutes = 0;
+
     private LocalDateTime lastScanned;
+
+    private LocalDateTime lastChecked;
 
     @Column(nullable = false)
     private boolean enabled = true;

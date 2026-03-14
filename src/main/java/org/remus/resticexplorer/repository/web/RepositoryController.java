@@ -55,6 +55,7 @@ public class RepositoryController {
         form.setS3AccessKey(repo.getProperty(RepositoryPropertyKey.S3_ACCESS_KEY));
         form.setS3Region(repo.getProperty(RepositoryPropertyKey.S3_REGION));
         form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
+        form.setCheckIntervalMinutes(repo.getCheckIntervalMinutes());
         form.setEnabled(repo.isEnabled());
         form.setGroupId(repo.getGroup() != null ? repo.getGroup().getId() : null);
         form.setComment(repo.getComment());
@@ -108,6 +109,7 @@ public class RepositoryController {
         repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, form.getS3AccessKey());
         repo.setProperty(RepositoryPropertyKey.S3_REGION, form.getS3Region());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
+        repo.setCheckIntervalMinutes(form.getCheckIntervalMinutes());
         repo.setEnabled(form.isEnabled());
         repo.setComment(form.getComment());
         if (form.getGroupId() != null) {

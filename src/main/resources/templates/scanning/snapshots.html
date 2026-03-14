@@ -23,6 +23,12 @@
                     <i class="bi bi-arrow-clockwise"></i> <span th:text="#{snapshot.scanNow}">Scan Now</span>
                 </button>
             </form>
+            <form th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}"
+                  th:action="@{/repositories/{id}/check(id=${repository.id})}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-info">
+                    <i class="bi bi-shield-check"></i> <span th:text="#{snapshot.checkNow}">Check Now</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -58,6 +64,22 @@
                     <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'FAILED'}"
                           class="badge bg-danger" th:title="${lastScanResult.message}" th:text="#{snapshot.repoInfo.scanStatus.failed}">Failed</span>
                     <span th:if="${lastScanResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.scanStatus.none}">No scans</span>
+                </div>
+            </div>
+            <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}" class="row mt-2">
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.lastCheck}">Last Check:</strong>
+                    <span th:if="${repository.lastChecked != null}"
+                          th:text="${#temporals.format(repository.lastChecked, 'yyyy-MM-dd HH:mm')}">-</span>
+                    <span th:if="${repository.lastChecked == null}" class="text-muted" th:text="#{snapshot.repoInfo.lastCheck.never}">Never</span>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{snapshot.repoInfo.checkStatus}">Check Status:</strong>
+                    <span th:if="${lastCheckResult != null && lastCheckResult.status.name() == 'SUCCESS'}"
+                          class="badge bg-success" th:text="#{snapshot.repoInfo.checkStatus.success}">Passed</span>
+                    <span th:if="${lastCheckResult != null && lastCheckResult.status.name() == 'FAILED'}"
+                          class="badge bg-danger" th:title="${lastCheckResult.message}" th:text="#{snapshot.repoInfo.checkStatus.failed}">Failed</span>
+                    <span th:if="${lastCheckResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.checkStatus.none}">No checks</span>
                 </div>
             </div>
         </div>

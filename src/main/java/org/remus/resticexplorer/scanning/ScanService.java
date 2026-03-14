@@ -26,6 +26,7 @@ public class ScanService {
     private final RepositoryService repositoryService;
     private final SnapshotRepository snapshotRepository;
     private final ScanResultRepository scanResultRepository;
+    private final CheckResultRepository checkResultRepository;
     private final ResticCommandService resticCommandService;
 
     @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
@@ -34,6 +35,9 @@ public class ScanService {
         for (ResticRepository repo : repos) {
             if (shouldScan(repo)) {
                 scanRepository(repo.getId());
+            }
+            if (shouldCheck(repo)) {
+                checkRepository(repo.getId());
             }
         }
     }
@@ -44,6 +48,17 @@ public class ScanService {
         }
         LocalDateTime nextScan = repo.getLastScanned().plusMinutes(repo.getScanIntervalMinutes());
         return LocalDateTime.now().isAfter(nextScan);
+    }
+
+    private boolean shouldCheck(ResticRepository repo) {
+        if (repo.getCheckIntervalMinutes() == null || repo.getCheckIntervalMinutes() <= 0) {
+            return false;
+        }
+        if (repo.getLastChecked() == null) {
+            return true;
+        }
+        LocalDateTime nextCheck = repo.getLastChecked().plusMinutes(repo.getCheckIntervalMinutes());
+        return LocalDateTime.now().isAfter(nextCheck);
     }
 
     @Transactional
@@ -109,6 +124,35 @@ public class ScanService {
         }
     }
 
+    @Transactional
+    public void checkRepository(Long repositoryId) {
+        ResticRepository repo = repositoryService.findById(repositoryId)
+                .orElseThrow(() -> new RepositoryNotFoundException(repositoryId));
+
+        CheckResult checkResult = new CheckResult();
+        checkResult.setRepositoryId(repositoryId);
+        checkResult.setStatus(CheckResult.CheckStatus.IN_PROGRESS);
+        checkResultRepository.save(checkResult);
+
+        try {
+            String output = resticCommandService.checkRepository(repo);
+
+            checkResult.setStatus(CheckResult.CheckStatus.SUCCESS);
+            checkResult.setMessage(output);
+            checkResultRepository.save(checkResult);
+
+            repo.setLastChecked(LocalDateTime.now());
+            repositoryService.save(repo);
+
+            log.info("Integrity check passed for repository '{}'", repo.getName());
+        } catch (Exception e) {
+            log.error("Integrity check failed for repository '{}': {}", repo.getName(), e.getMessage(), e);
+            checkResult.setStatus(CheckResult.CheckStatus.FAILED);
+            checkResult.setMessage(e.getMessage());
+            checkResultRepository.save(checkResult);
+        }
+    }
+
     public List<Snapshot> getSnapshots(Long repositoryId) {
         return snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);
     }
@@ -123,6 +167,10 @@ public class ScanService {
 
     public Optional<ScanResult> getLastScanResult(Long repositoryId) {
         return scanResultRepository.findTopByRepositoryIdOrderByScannedAtDesc(repositoryId);
+    }
+
+    public Optional<CheckResult> getLastCheckResult(Long repositoryId) {
+        return checkResultRepository.findTopByRepositoryIdOrderByCheckedAtDesc(repositoryId);
     }
 
     public long getTotalSnapshotCount() {

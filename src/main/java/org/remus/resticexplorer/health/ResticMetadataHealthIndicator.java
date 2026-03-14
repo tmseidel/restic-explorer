@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.scanning.ScanService;
+import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -42,6 +43,13 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
                 repoDetails.put("lastScanTime", result.getScannedAt());
             });
 
+            repoDetails.put("checkEnabled", repo.getCheckIntervalMinutes() != null && repo.getCheckIntervalMinutes() > 0);
+            repoDetails.put("lastChecked", repo.getLastChecked());
+            scanService.getLastCheckResult(repo.getId()).ifPresent(result -> {
+                repoDetails.put("lastCheckStatus", result.getStatus().name());
+                repoDetails.put("lastCheckTime", result.getCheckedAt());
+            });
+
             details.put("repository_" + repo.getName(), repoDetails);
 
             var lastResult = scanService.getLastScanResult(repo.getId());
@@ -49,6 +57,11 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
                 failedRepos++;
             } else if (lastResult.isPresent()) {
                 successRepos++;
+            }
+
+            var lastCheckResult = scanService.getLastCheckResult(repo.getId());
+            if (lastCheckResult.isPresent() && lastCheckResult.get().getStatus() == CheckResult.CheckStatus.FAILED) {
+                failedRepos++;
             }
         }
 
