@@ -43,6 +43,13 @@ public class RepositoryForm {
 
     private String comment;
 
+    // Retention policy fields (all optional; null or 0 = rule disabled)
+    private Integer keepDaily;
+    private Integer keepWeekly;
+    private Integer keepMonthly;
+    private Integer keepYearly;
+    private Integer keepLast;
+
     /**
      * Returns true if the given value is different from the sentinel placeholder
      * (i.e. the sensitive field has been changed).

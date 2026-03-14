@@ -175,6 +175,42 @@ The custom `resticMetadata` health indicator reports:
 - Per-repository scan status and last scan time
 - Overall status: UP (all scans successful), DOWN (any scan failed), UNKNOWN (no repositories)
 
+### 8. Retention Policies
+
+Each repository can optionally have a **retention policy** that defines expected backup frequency. The policy is purely advisory — it never deletes snapshots.
+
+#### Configuration
+
+When adding or editing a repository, fill in the optional **Retention Policy** fields:
+
+| Field | Meaning |
+|---|---|
+| **Keep Daily** | Number of days in the recent past that must each have at least one snapshot |
+| **Keep Weekly** | Number of weeks in the recent past that must each have at least one snapshot |
+| **Keep Monthly** | Number of months in the recent past that must each have at least one snapshot |
+| **Keep Yearly** | Number of years in the recent past that must each have at least one snapshot |
+| **Keep Last** | Minimum total number of snapshots that must exist |
+
+Leave all fields empty (or set to `0`) to disable the retention policy for a repository.
+
+#### Semantics
+
+- `keepDaily = 7` → There must be at least one snapshot for each of the last 7 days (today through 6 days ago).
+- `keepWeekly = 4` → There must be at least one snapshot in each of the last 4 calendar weeks.
+- `keepMonthly = 12` → At least one snapshot in each of the last 12 calendar months.
+- `keepYearly = 2` → At least one snapshot in each of the last 2 calendar years.
+- `keepLast = 10` → There must be at least 10 snapshots total.
+- Fields set to `null` or `0` are **skipped** (not checked).
+
+#### How Violations Are Surfaced
+
+After each scan, the system evaluates the cached snapshots against the configured policy:
+
+- **Dashboard**: Each repository shows a `Policy OK` (info/blue) or `Policy Warning` (amber/yellow) badge next to the scan status badge. No badge is shown if no policy is configured.
+- **Snapshots page**: If the policy is violated, an amber warning banner at the top of the page lists each specific violation (e.g., *"keepDaily: Missing backup for 2026-03-12"*).
+
+> ⚠️ **Retention violations are soft warnings, not errors.** They use amber/yellow (`bg-warning`), never red (`bg-danger`). They do **not** affect the overall dashboard status card at the top.
+
 ## Configuration
 
 ### Application Properties

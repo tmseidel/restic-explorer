@@ -24,6 +24,7 @@ graph TB
             RS[RepositoryService]
             SS[ScanService]
             RCS[ResticCommandService]
+            RPC[RetentionPolicyChecker]
         end
 
         subgraph "Data Layer"
@@ -53,6 +54,7 @@ graph TB
     TC --> RS
     TC --> SS
     SS --> RCS
+    SS --> RPC
     RCS --> RPI
     RPI --> S3P
     RPI -.-> FP
@@ -238,6 +240,11 @@ erDiagram
         int scan_interval_minutes
         timestamp last_scanned
         boolean enabled
+        int keep_daily
+        int keep_weekly
+        int keep_monthly
+        int keep_yearly
+        int keep_last
         timestamp created_at
         timestamp updated_at
     }
@@ -264,6 +271,8 @@ erDiagram
         text message
         int snapshot_count
         bigint total_size
+        boolean retention_policy_fulfilled
+        text retention_policy_violations
         timestamp scanned_at
     }
 
