@@ -31,10 +31,11 @@
                                        th:placeholder="#{repository.form.name.placeholder}">
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                             </div>
-                            <div class="col-auto mb-3 d-flex align-items-center">
-                                <div class="form-check form-switch mt-4">
-                                    <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
+                            <div class="col-auto mb-3 d-flex align-items-end pb-1">
+                                <div class="form-check form-switch">
+                                    <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}" aria-describedby="enabledHint">
                                     <label class="form-check-label" for="enabled" th:text="#{repository.form.enabled}">Enabled</label>
+                                    <div class="form-text" id="enabledHint" th:text="#{repository.form.enabled.hint}">When disabled, automatic scanning and integrity checks are paused.</div>
                                 </div>
                             </div>
                         </div>
