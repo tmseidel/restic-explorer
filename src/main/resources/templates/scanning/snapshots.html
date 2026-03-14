@@ -54,12 +54,12 @@
     <!-- Repository Info -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <div class="d-flex justify-content-between flex-wrap gap-3">
+            <div class="d-flex flex-wrap gap-3">
                 <div>
                     <small class="text-muted d-block" th:text="#{snapshot.repoInfo.type}">Type</small>
                     <span class="badge bg-secondary" th:text="${repository.type.displayName}">S3</span>
                 </div>
-                <div>
+                <div class="flex-grow-1">
                     <small class="text-muted d-block" th:text="#{snapshot.repoInfo.url}">URL</small>
                     <code th:text="${repository.url}">s3://...</code>
                 </div>
@@ -82,16 +82,14 @@
                     <span th:if="${retentionResult.fulfilled}" class="badge bg-success" th:text="#{snapshot.retention.ok}">OK</span>
                     <span th:if="${!retentionResult.fulfilled}" class="badge bg-warning text-dark" th:text="#{dashboard.retention.warning}">Policy Warning</span>
                 </div>
-            </div>
-            <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}" class="row mt-2">
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.lastCheck}">Last Check:</strong>
+                <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}">
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.lastCheck}">Last Check</small>
                     <span th:if="${repository.lastChecked != null}"
                           th:text="${#temporals.format(repository.lastChecked, 'yyyy-MM-dd HH:mm')}">-</span>
                     <span th:if="${repository.lastChecked == null}" class="text-muted" th:text="#{snapshot.repoInfo.lastCheck.never}">Never</span>
                 </div>
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.checkStatus}">Check Status:</strong>
+                <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}">
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.checkStatus}">Check Status</small>
                     <span th:if="${lastCheckResult != null && lastCheckResult.status.name() == 'SUCCESS'}"
                           class="badge bg-success" th:text="#{snapshot.repoInfo.checkStatus.success}">Passed</span>
                     <span th:if="${lastCheckResult != null && lastCheckResult.status.name() == 'FAILED'}"
