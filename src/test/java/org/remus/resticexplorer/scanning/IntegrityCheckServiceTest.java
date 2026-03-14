@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class IntegrityCheckServiceTest {
 
     @Autowired
-    private ScanService scanService;
+    private CheckService checkService;
 
     @Autowired
     private RepositoryService repositoryService;
@@ -34,7 +34,7 @@ class IntegrityCheckServiceTest {
         ResticRepository repo = createTestRepo("Check Repo", 0);
         ResticRepository saved = repositoryService.save(repo);
 
-        Optional<CheckResult> result = scanService.getLastCheckResult(saved.getId());
+        Optional<CheckResult> result = checkService.getLastCheckResult(saved.getId());
         assertTrue(result.isEmpty());
     }
 
@@ -54,7 +54,7 @@ class IntegrityCheckServiceTest {
         second.setMessage("Test failure");
         checkResultRepository.save(second);
 
-        Optional<CheckResult> result = scanService.getLastCheckResult(saved.getId());
+        Optional<CheckResult> result = checkService.getLastCheckResult(saved.getId());
         assertTrue(result.isPresent());
         assertEquals(CheckResult.CheckStatus.FAILED, result.get().getStatus());
     }
@@ -69,7 +69,7 @@ class IntegrityCheckServiceTest {
         check.setStatus(CheckResult.CheckStatus.SUCCESS);
         checkResultRepository.save(check);
 
-        Optional<CheckResult> result = scanService.getLastCheckResult(repo2.getId());
+        Optional<CheckResult> result = checkService.getLastCheckResult(repo2.getId());
         assertTrue(result.isEmpty());
     }
 

@@ -7,6 +7,7 @@ import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.remus.resticexplorer.scanning.CheckService;
 import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
@@ -29,6 +30,7 @@ public class DashboardController {
 
     private final RepositoryService repositoryService;
     private final ScanService scanService;
+    private final CheckService checkService;
     private final GroupService groupService;
 
     @GetMapping("/")
@@ -41,7 +43,7 @@ public class DashboardController {
         for (ResticRepository repo : repos) {
             snapshotCounts.put(repo.getId(), scanService.getSnapshotCount(repo.getId()));
             scanService.getLastScanResult(repo.getId()).ifPresent(r -> lastScanResults.put(repo.getId(), r));
-            scanService.getLastCheckResult(repo.getId()).ifPresent(r -> lastCheckResults.put(repo.getId(), r));
+            checkService.getLastCheckResult(repo.getId()).ifPresent(r -> lastCheckResults.put(repo.getId(), r));
         }
 
         // Group repositories
@@ -97,7 +99,7 @@ public class DashboardController {
                 .orElseThrow(() -> new RepositoryNotFoundException(id));
         Page<Snapshot> snapshotPage = scanService.getSnapshots(id, pageable);
         Optional<ScanResult> lastScan = scanService.getLastScanResult(id);
-        Optional<CheckResult> lastCheck = scanService.getLastCheckResult(id);
+        Optional<CheckResult> lastCheck = checkService.getLastCheckResult(id);
 
         model.addAttribute("repository", repo);
         model.addAttribute("page", snapshotPage);
@@ -132,7 +134,7 @@ public class DashboardController {
     @PostMapping("/repositories/{id}/check")
     public String triggerCheck(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
-            scanService.checkRepository(id);
+            checkService.checkRepository(id);
             redirectAttributes.addFlashAttribute("successMessage", "message.checkSuccess");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());

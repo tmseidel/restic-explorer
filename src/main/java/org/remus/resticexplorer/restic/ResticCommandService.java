@@ -68,7 +68,7 @@ public class ResticCommandService {
     }
 
     public String checkRepository(ResticRepository repository) {
-        return executeCommand(repository, "check");
+        return executeCommand(repository, "check", "--read-data");
     }
 
     public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) {
