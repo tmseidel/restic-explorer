@@ -3,7 +3,9 @@ package org.remus.resticexplorer.health;
 import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.remus.resticexplorer.scanning.CheckService;
 import org.remus.resticexplorer.scanning.ScanService;
+import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -19,6 +21,7 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
 
     private final RepositoryService repositoryService;
     private final ScanService scanService;
+    private final CheckService checkService;
 
     @Override
     public Health health() {
@@ -42,10 +45,27 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
                 repoDetails.put("lastScanTime", result.getScannedAt());
             });
 
+            repoDetails.put("checkEnabled", repo.getCheckIntervalMinutes() != null && repo.getCheckIntervalMinutes() > 0);
+            repoDetails.put("lastChecked", repo.getLastChecked());
+            checkService.getLastCheckResult(repo.getId()).ifPresent(result -> {
+                repoDetails.put("lastCheckStatus", result.getStatus().name());
+                repoDetails.put("lastCheckTime", result.getCheckedAt());
+            });
+
             details.put("repository_" + repo.getName(), repoDetails);
 
+            boolean repoFailed = false;
             var lastResult = scanService.getLastScanResult(repo.getId());
             if (lastResult.isPresent() && lastResult.get().getStatus() == ScanResult.ScanStatus.FAILED) {
+                repoFailed = true;
+            }
+
+            var lastCheckResult = checkService.getLastCheckResult(repo.getId());
+            if (lastCheckResult.isPresent() && lastCheckResult.get().getStatus() == CheckResult.CheckStatus.FAILED) {
+                repoFailed = true;
+            }
+
+            if (repoFailed) {
                 failedRepos++;
             } else if (lastResult.isPresent()) {
                 successRepos++;

@@ -7,9 +7,11 @@ import org.remus.resticexplorer.repository.GroupService;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
+import org.remus.resticexplorer.scanning.CheckService;
 import org.remus.resticexplorer.scanning.RetentionPolicyChecker;
 import org.remus.resticexplorer.scanning.RetentionPolicyResult;
 import org.remus.resticexplorer.scanning.ScanService;
+import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.remus.resticexplorer.scanning.data.Snapshot;
 import org.springframework.data.domain.Page;
@@ -31,6 +33,7 @@ public class DashboardController {
 
     private final RepositoryService repositoryService;
     private final ScanService scanService;
+    private final CheckService checkService;
     private final GroupService groupService;
     private final RetentionPolicyChecker retentionPolicyChecker;
 
@@ -39,10 +42,12 @@ public class DashboardController {
         List<ResticRepository> repos = repositoryService.findAll();
         Map<Long, Long> snapshotCounts = new HashMap<>();
         Map<Long, ScanResult> lastScanResults = new HashMap<>();
+        Map<Long, CheckResult> lastCheckResults = new HashMap<>();
 
         for (ResticRepository repo : repos) {
             snapshotCounts.put(repo.getId(), scanService.getSnapshotCount(repo.getId()));
             scanService.getLastScanResult(repo.getId()).ifPresent(r -> lastScanResults.put(repo.getId(), r));
+            checkService.getLastCheckResult(repo.getId()).ifPresent(r -> lastCheckResults.put(repo.getId(), r));
         }
 
         // Compute retention policy results from last scan result (stored violations)
@@ -69,6 +74,7 @@ public class DashboardController {
         model.addAttribute("ungroupedRepos", ungroupedRepos);
         model.addAttribute("snapshotCounts", snapshotCounts);
         model.addAttribute("lastScanResults", lastScanResults);
+        model.addAttribute("lastCheckResults", lastCheckResults);
         model.addAttribute("retentionResults", retentionResults);
         model.addAttribute("totalRepositories", repos.size());
         model.addAttribute("totalSnapshots", scanService.getTotalSnapshotCount());
@@ -107,6 +113,7 @@ public class DashboardController {
                 .orElseThrow(() -> new RepositoryNotFoundException(id));
         Page<Snapshot> snapshotPage = scanService.getSnapshots(id, pageable);
         Optional<ScanResult> lastScan = scanService.getLastScanResult(id);
+        Optional<CheckResult> lastCheck = checkService.getLastCheckResult(id);
 
         model.addAttribute("repository", repo);
         model.addAttribute("page", snapshotPage);
@@ -114,6 +121,7 @@ public class DashboardController {
 
         // Retention policy result for snapshot page
         model.addAttribute("retentionResult", retentionResultFromScanResult(lastScan.orElse(null)));
+        model.addAttribute("lastCheckResult", lastCheck.orElse(null));
         return "scanning/snapshots";
     }
 
@@ -136,6 +144,17 @@ public class DashboardController {
             redirectAttributes.addFlashAttribute("successMessage", "message.scanSuccess");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Scan failed: " + e.getMessage());
+        }
+        return "redirect:/repositories/" + id + "/snapshots";
+    }
+
+    @PostMapping("/repositories/{id}/check")
+    public String triggerCheck(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            checkService.checkRepository(id);
+            redirectAttributes.addFlashAttribute("successMessage", "message.checkSuccess");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());
         }
         return "redirect:/repositories/" + id + "/snapshots";
     }
