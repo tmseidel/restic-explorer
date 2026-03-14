@@ -8,12 +8,13 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 
 - **Repository Management** – CRUD operations for restic backup repositories (S3 supported, extensible architecture for future backends)
 - **Automated Scanning** – Configurable scheduled scans to cache restic metadata
-- **Dashboard** – Overview of all repositories, snapshot counts, and scan status
+- **Integrity Checks** – Scheduled restic consistency and integrity verification (`restic check`) with configurable intervals per repository
+- **Dashboard** – Overview of all repositories, snapshot counts, scan and integrity check status
 - **Snapshot Browser** – View all snapshots with details (hostname, paths, tags, timestamps)
 - **Snapshot Download** – Admin-only download of specific snapshots as tar archives
 - **Single Admin Account** – Simple authentication with password setup on first launch
 - **Encrypted Sensitive Data** – Repository passwords and S3 credentials encrypted at rest using AES-256-GCM
-- **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache status
+- **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache and integrity check status
 - **Internationalization** – All UI text externalized via message bundles; add new languages by adding `messages_xx.properties`
 - **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
 
@@ -132,7 +133,8 @@ On first launch, you are redirected to the **Setup** page:
    - **Repository URL**: The restic repository URL, e.g. `s3:https://s3.amazonaws.com/my-bucket/restic-repo`
    - **Repository Password**: The encryption password for the restic repository
    - **S3 Access Key / Secret Key / Region**: Your AWS or S3-compatible credentials
-   - **Scan Interval**: How often (in minutes) to automatically scan
+   - **Scan Interval**: How often (in minutes) to automatically scan for new snapshots
+   - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (0 = disabled)
 4. Click **Save**
 
 ### 3. Dashboard
@@ -140,13 +142,14 @@ On first launch, you are redirected to the **Setup** page:
 The dashboard shows:
 - Total number of repositories and snapshots
 - Per-repository scan status (OK, Failed, Pending)
-- Quick actions to view snapshots or trigger a manual scan
+- Per-repository integrity check status (OK, Failed, Pending, or disabled)
+- Quick actions to view snapshots, trigger a manual scan, or run an integrity check
 
 ### 4. Browsing Snapshots
 
 Click on a repository name or the eye icon to see all cached snapshots:
 - Snapshot ID, timestamp, hostname, paths, and tags
-- Admins can trigger a re-scan or download a snapshot
+- Admins can trigger a re-scan, run an integrity check, or download a snapshot
 
 ### 5. Downloading Snapshots
 
@@ -173,7 +176,8 @@ The application exposes Spring Actuator endpoints:
 The custom `resticMetadata` health indicator reports:
 - Total repositories and cached snapshots
 - Per-repository scan status and last scan time
-- Overall status: UP (all scans successful), DOWN (any scan failed), UNKNOWN (no repositories)
+- Per-repository integrity check status and last check time
+- Overall status: UP (all scans and checks successful), DOWN (any scan or check failed), UNKNOWN (no repositories)
 
 ## Configuration
 
@@ -277,8 +281,8 @@ src/main/java/org/remus/resticexplorer/
 │   └── RepositoryService.java        # Service layer
 ├── scanning/                          # Scanning & metadata feature
 │   ├── web/                           # Dashboard controller
-│   ├── data/                          # Snapshot, ScanResult entities
-│   └── ScanService.java              # Scheduled scanning service
+│   ├── data/                          # Snapshot, ScanResult, CheckResult entities
+│   └── ScanService.java              # Scheduled scanning & integrity check service
 ├── download/                          # Snapshot download feature
 │   └── web/                           # Download controller
 ├── restic/                            # Restic CLI integration

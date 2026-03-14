@@ -52,16 +52,21 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
 
             details.put("repository_" + repo.getName(), repoDetails);
 
+            boolean repoFailed = false;
             var lastResult = scanService.getLastScanResult(repo.getId());
             if (lastResult.isPresent() && lastResult.get().getStatus() == ScanResult.ScanStatus.FAILED) {
-                failedRepos++;
-            } else if (lastResult.isPresent()) {
-                successRepos++;
+                repoFailed = true;
             }
 
             var lastCheckResult = scanService.getLastCheckResult(repo.getId());
             if (lastCheckResult.isPresent() && lastCheckResult.get().getStatus() == CheckResult.CheckStatus.FAILED) {
+                repoFailed = true;
+            }
+
+            if (repoFailed) {
                 failedRepos++;
+            } else if (lastResult.isPresent()) {
+                successRepos++;
             }
         }
 
