@@ -45,7 +45,7 @@ public class ResticRepository {
     @Column(nullable = false)
     private Integer scanIntervalMinutes = 60;
 
-    @Column(nullable = false)
+    @Column
     private Integer checkIntervalMinutes = 0;
 
     // Retention policy fields (all optional; null or 0 = rule disabled)
@@ -89,6 +89,13 @@ public class ResticRepository {
         } else {
             properties.put(key, value);
         }
+    }
+
+    /**
+     * Get the check interval in minutes, treating null as 0 for backward compatibility.
+     */
+    public Integer getCheckIntervalMinutes() {
+        return checkIntervalMinutes == null ? 0 : checkIntervalMinutes;
     }
 
     @PrePersist
