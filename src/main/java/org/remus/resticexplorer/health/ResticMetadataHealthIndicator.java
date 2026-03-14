@@ -79,8 +79,8 @@ public class ResticMetadataHealthIndicator implements HealthIndicator {
             }
         }
 
-        details.put("successfulScans", successRepos);
-        details.put("failedScans", failedRepos);
+        details.put("healthyRepositories", successRepos);
+        details.put("unhealthyRepositories", failedRepos);
 
         if (repos.isEmpty()) {
             return Health.unknown().withDetails(details).build();
