@@ -340,11 +340,15 @@ src/main/java/org/remus/resticexplorer/
 ├── repository/                        # Repository management feature
 │   ├── web/                           # Controllers, DTOs
 │   ├── data/                          # JPA entities, repositories
-│   └── RepositoryService.java        # Service layer
-├── scanning/                          # Scanning & metadata feature
+│   ├── RepositoryService.java        # Repository CRUD service
+│   └── GroupService.java             # Repository group management
+├── scanning/                          # Scanning, checks & retention policy
 │   ├── web/                           # Dashboard controller
 │   ├── data/                          # Snapshot, ScanResult, CheckResult entities
-│   └── ScanService.java              # Scheduled scanning & integrity check service
+│   ├── ScanService.java              # Scheduled scanning service
+│   ├── CheckService.java             # Scheduled integrity check service
+│   ├── RetentionPolicyChecker.java   # Retention policy evaluation logic
+│   └── RetentionPolicyResult.java    # Retention policy result DTO
 ├── download/                          # Snapshot download feature
 │   └── web/                           # Download controller
 ├── restic/                            # Restic CLI integration
