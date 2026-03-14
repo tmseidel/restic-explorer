@@ -37,6 +37,10 @@ public class RepositoryForm {
     @Min(value = 1, message = "{validation.scanInterval.min}")
     private Integer scanIntervalMinutes = 60;
 
+    @NotNull(message = "{validation.checkInterval.required}")
+    @Min(value = 0, message = "{validation.checkInterval.min}")
+    private Integer checkIntervalMinutes = 0;
+
     private boolean enabled = true;
 
     private Long groupId;

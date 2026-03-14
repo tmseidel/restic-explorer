@@ -67,6 +67,10 @@ public class ResticCommandService {
         }
     }
 
+    public String checkRepository(ResticRepository repository) {
+        return executeCommand(repository, "check", "--read-data");
+    }
+
     public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) {
         ResticRepositoryProvider provider = getProvider(repository);
         Map<String, String> env = provider.buildEnvironment(repository);
