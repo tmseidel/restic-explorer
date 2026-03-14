@@ -78,6 +78,6 @@ public class CheckService {
     }
 
     public Optional<CheckResult> getLastCheckResult(Long repositoryId) {
-        return checkResultRepository.findTopByRepositoryIdOrderByCheckedAtDesc(repositoryId);
+        return checkResultRepository.findTopByRepositoryIdOrderByCheckedAtDescIdDesc(repositoryId);
     }
 }
