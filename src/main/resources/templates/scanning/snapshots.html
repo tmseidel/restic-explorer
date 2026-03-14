@@ -54,33 +54,33 @@
     <!-- Repository Info -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.type}">Type:</strong> <span class="badge bg-secondary" th:text="${repository.type.displayName}">S3</span>
+            <div class="d-flex justify-content-between flex-wrap gap-3">
+                <div>
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.type}">Type</small>
+                    <span class="badge bg-secondary" th:text="${repository.type.displayName}">S3</span>
                 </div>
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.url}">URL:</strong> <code th:text="${repository.url}">s3://...</code>
+                <div>
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.url}">URL</small>
+                    <code th:text="${repository.url}">s3://...</code>
                 </div>
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.lastScan}">Last Scan:</strong>
+                <div>
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.lastScan}">Last Scan</small>
                     <span th:if="${repository.lastScanned != null}"
                           th:text="${#temporals.format(repository.lastScanned, 'yyyy-MM-dd HH:mm')}">-</span>
                     <span th:if="${repository.lastScanned == null}" class="text-muted" th:text="#{snapshot.repoInfo.lastScan.never}">Never</span>
                 </div>
-                <div class="col-md-3">
-                    <strong th:text="#{snapshot.repoInfo.scanStatus}">Scan Status:</strong>
+                <div>
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.scanStatus}">Scan Status</small>
                     <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'SUCCESS'}"
                           class="badge bg-success" th:text="#{snapshot.repoInfo.scanStatus.success}">Success</span>
                     <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'FAILED'}"
                           class="badge bg-danger" th:title="${lastScanResult.message}" th:text="#{snapshot.repoInfo.scanStatus.failed}">Failed</span>
                     <span th:if="${lastScanResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.scanStatus.none}">No scans</span>
                 </div>
-            </div>
-            <div class="row mt-2" th:if="${retentionResult != null}">
-                <div class="col-12">
-                    <strong th:text="#{snapshot.retention.title}">Retention Policy:</strong>
-                    <span th:if="${retentionResult.fulfilled}" class="badge bg-success ms-1" th:text="#{snapshot.retention.ok}">OK</span>
-                    <span th:if="${!retentionResult.fulfilled}" class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
+                <div th:if="${retentionResult != null}">
+                    <small class="text-muted d-block" th:text="#{snapshot.retention.title}">Retention Policy</small>
+                    <span th:if="${retentionResult.fulfilled}" class="badge bg-success" th:text="#{snapshot.retention.ok}">OK</span>
+                    <span th:if="${!retentionResult.fulfilled}" class="badge bg-warning text-dark" th:text="#{dashboard.retention.warning}">Policy Warning</span>
                 </div>
             </div>
             <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}" class="row mt-2">
