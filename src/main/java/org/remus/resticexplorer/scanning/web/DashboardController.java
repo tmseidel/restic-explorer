@@ -152,7 +152,6 @@ public class DashboardController {
     public String triggerCheck(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             checkService.checkRepository(id);
-            redirectAttributes.addFlashAttribute("successMessage", "message.checkSuccess");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());
         }
