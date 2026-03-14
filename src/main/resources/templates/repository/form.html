@@ -23,12 +23,20 @@
                     <form th:action="@{/repositories/save}" th:object="${repositoryForm}" method="post">
                         <input type="hidden" th:field="*{id}">
 
-                        <div class="mb-3">
-                            <label for="name" class="form-label"><span th:text="#{repository.form.name}">Name</span> <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="name" th:field="*{name}"
-                                   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
-                                   th:placeholder="#{repository.form.name.placeholder}">
-                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                        <div class="row">
+                            <div class="col mb-3">
+                                <label for="name" class="form-label"><span th:text="#{repository.form.name}">Name</span> <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}"
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
+                                       th:placeholder="#{repository.form.name.placeholder}">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                            </div>
+                            <div class="col-auto mb-3 d-flex align-items-center">
+                                <div class="form-check form-switch mt-4">
+                                    <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
+                                    <label class="form-check-label" for="enabled" th:text="#{repository.form.enabled}">Enabled</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -126,24 +134,18 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="scanIntervalMinutes" class="form-label"><span th:text="#{repository.form.scanInterval}">Scan Interval (minutes)</span> <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="scanIntervalMinutes" th:field="*{scanIntervalMinutes}"
                                        th:classappend="${#fields.hasErrors('scanIntervalMinutes')} ? 'is-invalid' : ''" min="1">
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('scanIntervalMinutes')}" th:errors="*{scanIntervalMinutes}"></div>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label for="checkIntervalMinutes" class="form-label"><span th:text="#{repository.form.checkInterval}">Check Interval (minutes)</span> <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control" id="checkIntervalMinutes" th:field="*{checkIntervalMinutes}"
                                        th:classappend="${#fields.hasErrors('checkIntervalMinutes')} ? 'is-invalid' : ''" min="0">
                                 <div class="invalid-feedback" th:if="${#fields.hasErrors('checkIntervalMinutes')}" th:errors="*{checkIntervalMinutes}"></div>
                                 <div class="form-text" th:text="#{repository.form.checkInterval.hint}">0 = disabled</div>
-                            </div>
-                            <div class="col-md-4 mb-3 d-flex align-items-end">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="enabled" th:field="*{enabled}">
-                                    <label class="form-check-label" for="enabled" th:text="#{repository.form.enabled}">Enabled</label>
-                                </div>
                             </div>
                         </div>
 

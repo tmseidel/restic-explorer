@@ -129,12 +129,16 @@ On first launch, you are redirected to the **Setup** page:
 2. Navigate to **Repositories** → **Add Repository**
 3. Fill in the form:
    - **Name**: A friendly display name
+   - **Enabled**: Toggle to enable or disable the repository. When disabled, automatic scanning and integrity checks are paused.
+   - **Group**: Optionally assign the repository to a group for organizing the dashboard
    - **Repository Type**: Select S3 (more types planned)
    - **Repository URL**: The restic repository URL, e.g. `s3:https://s3.amazonaws.com/my-bucket/restic-repo`
    - **Repository Password**: The encryption password for the restic repository
    - **S3 Access Key / Secret Key / Region**: Your AWS or S3-compatible credentials
+   - **Retention Policy** *(optional)*: Define expected backup frequency (see [Retention Policies](#9-retention-policies))
+   - **Comment**: Optional notes or description for the repository
    - **Scan Interval**: How often (in minutes) to automatically scan for new snapshots
-   - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (0 = disabled)
+   - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (set to `0` to disable)
 4. Click **Save**
 
 ### 3. Dashboard
@@ -179,7 +183,28 @@ The custom `resticMetadata` health indicator reports:
 - Per-repository integrity check status and last check time
 - Overall status: UP (all scans and checks successful), DOWN (any scan or check failed), UNKNOWN (no repositories)
 
-### 8. Retention Policies
+### 8. Integrity Checks
+
+Restic Explorer can periodically run `restic check --read-data` to verify the consistency and integrity of your backup repositories.
+
+#### Configuration
+
+- When adding or editing a repository, set the **Check Interval** field to a non-zero value (in minutes) to enable scheduled integrity checks.
+- Set it to `0` to disable automatic integrity checks for that repository.
+
+#### Manual Trigger
+
+Admins can trigger an integrity check at any time from the **Dashboard** or the **Snapshots** page by clicking the **Check Now** button.
+
+#### Status Reporting
+
+- **Dashboard**: Each repository shows an integrity check status badge (OK, Failed, Pending, or Disabled) alongside the scan status.
+- **Snapshots page**: The repository info section displays the last check time and result.
+- **Health endpoint**: `GET /actuator/health` includes per-repository integrity check status and last check time.
+
+> ⚠️ `restic check --read-data` reads **all data** in the repository, which can take a long time and generate significant network traffic for large repositories. Choose the check interval accordingly.
+
+### 9. Retention Policies
 
 Each repository can optionally have a **retention policy** that defines expected backup frequency. The policy is purely advisory — it never deletes snapshots.
 
