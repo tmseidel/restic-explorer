@@ -89,6 +89,36 @@
                             </div>
                         </fieldset>
 
+                        <fieldset class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.retentionPolicy}">Retention Policy</legend>
+                            <div class="form-text mb-3" th:text="#{repository.form.retentionPolicy.hint}">Optionally configure a retention policy.</div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="keepDaily" class="form-label" th:text="#{repository.form.keepDaily}">Keep Daily</label>
+                                    <input type="number" class="form-control" id="keepDaily" th:field="*{keepDaily}" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="keepWeekly" class="form-label" th:text="#{repository.form.keepWeekly}">Keep Weekly</label>
+                                    <input type="number" class="form-control" id="keepWeekly" th:field="*{keepWeekly}" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="keepMonthly" class="form-label" th:text="#{repository.form.keepMonthly}">Keep Monthly</label>
+                                    <input type="number" class="form-control" id="keepMonthly" th:field="*{keepMonthly}" min="0">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="keepYearly" class="form-label" th:text="#{repository.form.keepYearly}">Keep Yearly</label>
+                                    <input type="number" class="form-control" id="keepYearly" th:field="*{keepYearly}" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="keepLast" class="form-label" th:text="#{repository.form.keepLast}">Keep Last</label>
+                                    <input type="number" class="form-control" id="keepLast" th:field="*{keepLast}" min="0">
+                                </div>
+                            </div>
+                        </fieldset>
+
                         <div class="mb-3">
                             <label for="comment" class="form-label" th:text="#{repository.form.comment}">Comment</label>
                             <textarea class="form-control" id="comment" th:field="*{comment}" rows="3"

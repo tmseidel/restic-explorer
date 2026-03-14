@@ -41,6 +41,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
+    <!-- Retention Policy Warning -->
+    <div th:if="${retentionResult != null && !retentionResult.fulfilled}"
+         class="alert alert-warning alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle"></i> <strong th:text="#{snapshot.retention.title}">Retention Policy Warning</strong>
+        <ul class="mb-0 mt-1">
+            <li th:each="v : ${retentionResult.violations}" th:text="${v}"></li>
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
     <!-- Repository Info -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -64,6 +74,13 @@
                     <span th:if="${lastScanResult != null && lastScanResult.status.name() == 'FAILED'}"
                           class="badge bg-danger" th:title="${lastScanResult.message}" th:text="#{snapshot.repoInfo.scanStatus.failed}">Failed</span>
                     <span th:if="${lastScanResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.scanStatus.none}">No scans</span>
+                </div>
+            </div>
+            <div class="row mt-2" th:if="${retentionResult != null}">
+                <div class="col-12">
+                    <strong th:text="#{snapshot.retention.title}">Retention Policy:</strong>
+                    <span th:if="${retentionResult.fulfilled}" class="badge bg-success ms-1" th:text="#{snapshot.retention.ok}">OK</span>
+                    <span th:if="${!retentionResult.fulfilled}" class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
                 </div>
             </div>
             <div th:if="${repository.checkIntervalMinutes != null && repository.checkIntervalMinutes > 0}" class="row mt-2">
