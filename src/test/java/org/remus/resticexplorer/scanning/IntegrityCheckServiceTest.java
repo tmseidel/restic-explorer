@@ -39,7 +39,7 @@ class IntegrityCheckServiceTest {
     }
 
     @Test
-    void testGetLastCheckResultReturnsLatest() {
+    void testGetLastCheckResultReturnsLatest() throws InterruptedException {
         ResticRepository repo = createTestRepo("Check Repo", 60);
         ResticRepository saved = repositoryService.save(repo);
 
@@ -47,6 +47,9 @@ class IntegrityCheckServiceTest {
         first.setRepositoryId(saved.getId());
         first.setStatus(CheckResult.CheckStatus.SUCCESS);
         checkResultRepository.save(first);
+
+        // Ensure the second check result gets a strictly later checkedAt timestamp
+        Thread.sleep(10);
 
         CheckResult second = new CheckResult();
         second.setRepositoryId(saved.getId());

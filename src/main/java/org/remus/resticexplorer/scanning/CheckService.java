@@ -25,7 +25,7 @@ public class CheckService {
     private final CheckResultRepository checkResultRepository;
     private final ResticCommandService resticCommandService;
 
-    @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
+    @Scheduled(fixedDelayString = "${restic.check.check-interval:${restic.scan.check-interval:60000}}")
     public void scheduledCheck() {
         List<ResticRepository> repos = repositoryService.findAllEnabled();
         for (ResticRepository repo : repos) {
@@ -47,7 +47,7 @@ public class CheckService {
     }
 
     @Transactional
-    public void checkRepository(Long repositoryId) {
+    public CheckResult checkRepository(Long repositoryId) {
         ResticRepository repo = repositoryService.findById(repositoryId)
                 .orElseThrow(() -> new RepositoryNotFoundException(repositoryId));
 
@@ -73,6 +73,8 @@ public class CheckService {
             checkResult.setMessage(e.getMessage());
             checkResultRepository.save(checkResult);
         }
+
+        return checkResult;
     }
 
     public Optional<CheckResult> getLastCheckResult(Long repositoryId) {

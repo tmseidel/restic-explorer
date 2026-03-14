@@ -5,6 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CheckResultRepository extends JpaRepository<CheckResult, Long> {
-    Optional<CheckResult> findTopByRepositoryIdOrderByCheckedAtDesc(Long repositoryId);
-    List<CheckResult> findByRepositoryIdOrderByCheckedAtDesc(Long repositoryId);
+    Optional<CheckResult> findTopByRepositoryIdOrderByCheckedAtDescIdDesc(Long repositoryId);
+    List<CheckResult> findByRepositoryIdOrderByCheckedAtDescIdDesc(Long repositoryId);
 }
