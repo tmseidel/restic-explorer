@@ -56,6 +56,20 @@
             </div>
         </div>
     </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.title}">Error Log</span></div>
+                <div class="card-body">
+                    <p class="card-text" th:text="#{admin.errorLog.description}">View errors that occurred during repository scans and integrity checks.</p>
+                    <a th:href="@{/admin/error-log}" class="btn btn-outline-danger">
+                        <i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.viewLink}">View Error Log</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
