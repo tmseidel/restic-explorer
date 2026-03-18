@@ -2,6 +2,7 @@ package org.remus.resticexplorer.scanning;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.remus.resticexplorer.admin.ErrorLogService;
 import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.ResticRepository;
@@ -29,6 +30,7 @@ public class ScanService {
     private final ScanResultRepository scanResultRepository;
     private final ResticCommandService resticCommandService;
     private final RetentionPolicyChecker retentionPolicyChecker;
+    private final ErrorLogService errorLogService;
 
     @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
     public void scheduledScan() {
@@ -117,6 +119,7 @@ public class ScanService {
             scanResult.setStatus(ScanResult.ScanStatus.FAILED);
             scanResult.setMessage(e.getMessage());
             scanResultRepository.save(scanResult);
+            errorLogService.logError(repositoryId, repo.getName(), "SCAN", e.getMessage(), e);
         }
     }
 

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Error Log')}"><title>Error Log</title></head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav th:replace="~{fragments/layout :: navbar}" aria-label="Main navigation"></nav>
+
+<main class="container mt-4 flex-grow-1">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin}" th:text="#{admin.title}">Admin</a></li>
+            <li class="breadcrumb-item active" th:text="#{admin.errorLog.title}">Error Log</li>
+        </ol>
+    </nav>
+
+    <h2><i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.title}">Error Log</span></h2>
+
+    <!-- Auto-deletion notice -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        <span th:text="#{admin.errorLog.autoDelete}">Error log entries are automatically deleted after 12 months.</span>
+    </div>
+
+    <!-- Date filter -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><i class="bi bi-funnel"></i> <span th:text="#{admin.errorLog.filter}">Filter</span></div>
+        <div class="card-body">
+            <form method="get" th:action="@{/admin/error-log}" class="row g-3 align-items-end">
+                <div class="col-auto">
+                    <label for="startDate" class="form-label" th:text="#{admin.errorLog.filter.startDate}">From</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate"
+                           th:value="${startDate}">
+                </div>
+                <div class="col-auto">
+                    <label for="endDate" class="form-label" th:text="#{admin.errorLog.filter.endDate}">To</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate"
+                           th:value="${endDate}">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> <span th:text="#{admin.errorLog.filter.apply}">Apply</span>
+                    </button>
+                    <a th:href="@{/admin/error-log}" class="btn btn-outline-secondary ms-1">
+                        <i class="bi bi-x-circle"></i> <span th:text="#{admin.errorLog.filter.reset}">Reset</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results table -->
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-list-ul"></i> <span th:text="#{admin.errorLog.entries}">Entries</span></span>
+            <small class="text-muted"
+                   th:text="${page.totalElements} + ' ' + #{admin.errorLog.total}">0 total</small>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${page.totalElements == 0}" class="p-4 text-center text-muted">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+                <p class="mt-2" th:text="#{admin.errorLog.empty}">No errors found in the selected period.</p>
+            </div>
+
+            <div th:if="${page.totalElements > 0}" class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <!-- Sortable: timestamp -->
+                            <th th:with="
+                                    field='timestamp',
+                                    currentSort=${page.sort.getOrderFor('timestamp')},
+                                    currentDir=${currentSort != null ? currentSort.direction.name() : ''},
+                                    nextDir=${currentDir == 'ASC' ? 'DESC' : 'ASC'}">
+                                <a th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=0,size=${page.size},sort=${'timestamp,' + nextDir})}"
+                                   class="text-decoration-none text-body d-flex align-items-center gap-1">
+                                    <span th:text="#{admin.errorLog.col.timestamp}">Timestamp</span>
+                                    <i th:if="${currentDir == 'ASC'}" class="bi bi-sort-up"></i>
+                                    <i th:if="${currentDir == 'DESC'}" class="bi bi-sort-down"></i>
+                                    <i th:if="${currentDir == ''}" class="bi bi-arrow-down-up text-muted small"></i>
+                                </a>
+                            </th>
+                            <!-- Sortable: repositoryName -->
+                            <th th:with="
+                                    field='repositoryName',
+                                    currentSort=${page.sort.getOrderFor('repositoryName')},
+                                    currentDir=${currentSort != null ? currentSort.direction.name() : ''},
+                                    nextDir=${currentDir == 'ASC' ? 'DESC' : 'ASC'}">
+                                <a th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=0,size=${page.size},sort=${'repositoryName,' + nextDir})}"
+                                   class="text-decoration-none text-body d-flex align-items-center gap-1">
+                                    <span th:text="#{admin.errorLog.col.repository}">Repository</span>
+                                    <i th:if="${currentDir == 'ASC'}" class="bi bi-sort-up"></i>
+                                    <i th:if="${currentDir == 'DESC'}" class="bi bi-sort-down"></i>
+                                    <i th:if="${currentDir == ''}" class="bi bi-arrow-down-up text-muted small"></i>
+                                </a>
+                            </th>
+                            <!-- Sortable: action -->
+                            <th th:with="
+                                    field='action',
+                                    currentSort=${page.sort.getOrderFor('action')},
+                                    currentDir=${currentSort != null ? currentSort.direction.name() : ''},
+                                    nextDir=${currentDir == 'ASC' ? 'DESC' : 'ASC'}">
+                                <a th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=0,size=${page.size},sort=${'action,' + nextDir})}"
+                                   class="text-decoration-none text-body d-flex align-items-center gap-1">
+                                    <span th:text="#{admin.errorLog.col.action}">Action</span>
+                                    <i th:if="${currentDir == 'ASC'}" class="bi bi-sort-up"></i>
+                                    <i th:if="${currentDir == 'DESC'}" class="bi bi-sort-down"></i>
+                                    <i th:if="${currentDir == ''}" class="bi bi-arrow-down-up text-muted small"></i>
+                                </a>
+                            </th>
+                            <th th:text="#{admin.errorLog.col.errorMessage}">Error Message</th>
+                            <th th:text="#{admin.errorLog.col.details}">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="entry, iterStat : ${page.content}">
+                            <td class="text-nowrap">
+                                <span th:text="${#temporals.format(entry.timestamp, 'yyyy-MM-dd HH:mm:ss')}">-</span>
+                            </td>
+                            <td>
+                                <span th:if="${entry.repositoryName != null}" th:text="${entry.repositoryName}">-</span>
+                                <span th:if="${entry.repositoryName == null}" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${entry.action == 'SCAN'} ? 'bg-primary' : (${entry.action == 'CHECK'} ? 'bg-info' : 'bg-secondary')"
+                                      th:text="${entry.action}">ACTION</span>
+                            </td>
+                            <td class="text-break" style="max-width: 350px;">
+                                <span th:text="${entry.errorMessage}">-</span>
+                            </td>
+                            <td>
+                                <button th:if="${entry.stackTrace != null}"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        th:attr="data-bs-target='#trace-' + ${iterStat.index}"
+                                        th:title="#{admin.errorLog.showDetails}">
+                                    <i class="bi bi-chevron-down"></i>
+                                    <span th:text="#{admin.errorLog.showDetails}">Details</span>
+                                </button>
+                                <span th:if="${entry.stackTrace == null}" class="text-muted">-</span>
+                            </td>
+                        </tr>
+                        <!-- Expandable stacktrace rows -->
+                        <tr th:each="entry, iterStat : ${page.content}" th:if="${entry.stackTrace != null}"
+                            class="collapse" th:id="'trace-' + ${iterStat.index}">
+                            <td colspan="5" class="bg-body-tertiary">
+                                <pre class="mb-0 small text-break" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;"
+                                     th:text="${entry.stackTrace}"></pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${page.totalPages > 1}" aria-label="Error log pagination"
+                 class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
+                <small class="text-muted"
+                       th:with="first=${page.number * page.size + 1}, last=${page.number * page.size + page.numberOfElements}">
+                    <span th:text="#{pagination.showing}">Showing</span>
+                    <strong th:text="${first}">1</strong>–<strong th:text="${last}">10</strong>
+                    <span th:text="#{pagination.of}">of</span>
+                    <strong th:text="${page.totalElements}">100</strong>
+                </small>
+                <ul class="pagination pagination-sm mb-0"
+                    th:with="firstOrder=${page.sort.isSorted() ? page.sort.iterator().next() : null},
+                             sortStr=${firstOrder != null ? firstOrder.property + ',' + firstOrder.direction.name().toLowerCase() : ''}">
+                    <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.number - 1},size=${page.size},sort=${sortStr})}"
+                           th:text="#{pagination.previous}">Previous</a>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                        class="page-item" th:classappend="${i == page.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${i},size=${page.size},sort=${sortStr})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.number + 1},size=${page.size},sort=${sortStr})}"
+                           th:text="#{pagination.next}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
