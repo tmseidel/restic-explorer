@@ -1,10 +1,10 @@
 package org.remus.resticexplorer.admin.web;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.admin.AdminService;
 import org.remus.resticexplorer.admin.ErrorLogService;
 import org.remus.resticexplorer.admin.data.ErrorLogEntry;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -18,18 +18,27 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
-@RequiredArgsConstructor
 public class AdminController {
 
     private final AdminService adminService;
     private final ErrorLogService errorLogService;
+    private final Optional<BuildProperties> buildProperties;
+
+    public AdminController(AdminService adminService, ErrorLogService errorLogService,
+                           Optional<BuildProperties> buildProperties) {
+        this.adminService = adminService;
+        this.errorLogService = errorLogService;
+        this.buildProperties = buildProperties;
+    }
 
     @GetMapping
     public String adminPanel(Model model) {
         model.addAttribute("changePasswordForm", new ChangePasswordForm());
+        model.addAttribute("appVersion", buildProperties.map(BuildProperties::getVersion).orElse("dev"));
         return "admin/index";
     }
 
