@@ -48,7 +48,7 @@
                         <dt class="col-sm-5" th:text="#{admin.application}">Application</dt>
                         <dd class="col-sm-7" th:text="#{app.name}">Restic Explorer</dd>
                         <dt class="col-sm-5" th:text="#{admin.version}">Version</dt>
-                        <dd class="col-sm-7">1.0.0</dd>
+                        <dd class="col-sm-7" th:text="${appVersion}">0.0.0</dd>
                         <dt class="col-sm-5" th:text="#{admin.actuatorHealth}">Actuator Health</dt>
                         <dd class="col-sm-7"><a th:href="@{/actuator/health}" target="_blank">/actuator/health</a></dd>
                     </dl>
