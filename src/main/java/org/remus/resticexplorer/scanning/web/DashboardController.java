@@ -1,5 +1,7 @@
 package org.remus.resticexplorer.scanning.web;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.config.exception.SnapshotNotFoundException;
@@ -22,7 +24,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,9 +42,10 @@ public class DashboardController {
     private final CheckService checkService;
     private final GroupService groupService;
     private final RetentionPolicyChecker retentionPolicyChecker;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/")
-    public String dashboard(Model model) {
+    public String dashboard(Model model, HttpServletRequest request) {
         List<ResticRepository> repos = repositoryService.findAll();
         Map<Long, Long> snapshotCounts = new HashMap<>();
         Map<Long, ScanResult> lastScanResults = new HashMap<>();
@@ -78,6 +85,7 @@ public class DashboardController {
         model.addAttribute("retentionResults", retentionResults);
         model.addAttribute("totalRepositories", repos.size());
         model.addAttribute("totalSnapshots", scanService.getTotalSnapshotCount());
+        model.addAttribute("collapsedGroups", parseCollapsedGroups(request));
 
         // Calculate overall status from scan results
         String overallStatus = "none"; // no repos
@@ -156,6 +164,26 @@ public class DashboardController {
             redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());
         }
         return "redirect:/repositories/" + id + "/snapshots";
+    }
+
+    private Set<String> parseCollapsedGroups(HttpServletRequest request) {
+        if (request.getCookies() == null) return Collections.emptySet();
+        for (Cookie cookie : request.getCookies()) {
+            if ("restic_group_state".equals(cookie.getName())) {
+                try {
+                    String json = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+                    Map<String, String> state = objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+                    return state.entrySet().stream()
+                            .filter(e -> "collapsed".equals(e.getValue()))
+                            .map(Map.Entry::getKey)
+                            .collect(Collectors.toSet());
+                } catch (Exception e) {
+                    // ignore malformed cookie
+                }
+                break;
+            }
+        }
+        return Collections.emptySet();
     }
 
     private RetentionPolicyResult retentionResultFromScanResult(ScanResult scanResult) {

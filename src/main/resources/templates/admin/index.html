@@ -48,10 +48,24 @@
                         <dt class="col-sm-5" th:text="#{admin.application}">Application</dt>
                         <dd class="col-sm-7" th:text="#{app.name}">Restic Explorer</dd>
                         <dt class="col-sm-5" th:text="#{admin.version}">Version</dt>
-                        <dd class="col-sm-7">1.0.0</dd>
+                        <dd class="col-sm-7" th:text="${appVersion}">0.0.0</dd>
                         <dt class="col-sm-5" th:text="#{admin.actuatorHealth}">Actuator Health</dt>
                         <dd class="col-sm-7"><a th:href="@{/actuator/health}" target="_blank">/actuator/health</a></dd>
                     </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header"><i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.title}">Error Log</span></div>
+                <div class="card-body">
+                    <p class="card-text" th:text="#{admin.errorLog.description}">View errors that occurred during repository scans and integrity checks.</p>
+                    <a th:href="@{/admin/error-log}" class="btn btn-outline-danger">
+                        <i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.viewLink}">View Error Log</span>
+                    </a>
                 </div>
             </div>
         </div>
