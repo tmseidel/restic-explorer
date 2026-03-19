@@ -8,13 +8,16 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * Drops any H2-generated CHECK constraint on restic_repositories.type that
- * only listed the original 'S3' value. This constraint was created automatically
- * by H2 when Hibernate built the schema with a single-value enum column.
+ * Drops any H2-generated CHECK constraints on enum columns that were created
+ * automatically by H2 when Hibernate built the schema with limited enum values.
  *
- * On PostgreSQL no such constraint exists, so this migration is a no-op there.
- * On fresh databases the table does not exist yet when this runs (Flyway executes
- * before Hibernate DDL), so the query simply returns no rows and nothing is dropped.
+ * Specifically drops CHECK constraints on:
+ * - restic_repositories.type (originally only allowed 'S3')
+ * - repository_properties.property_key (originally only allowed S3 property keys)
+ *
+ * On PostgreSQL no such constraints exist, so this migration is a no-op there.
+ * On fresh databases the tables do not exist yet when this runs (Flyway executes
+ * before Hibernate DDL), so the queries simply return no rows and nothing is dropped.
  */
 public class V1__Fix_repository_type_column extends BaseJavaMigration {
 
@@ -28,20 +31,25 @@ public class V1__Fix_repository_type_column extends BaseJavaMigration {
             return;
         }
 
+        dropCheckConstraints(connection, "RESTIC_REPOSITORIES", "TYPE");
+        dropCheckConstraints(connection, "REPOSITORY_PROPERTIES", "PROPERTY_KEY");
+    }
+
+    private void dropCheckConstraints(Connection connection, String tableName, String columnName) throws Exception {
         try (Statement queryStmt = connection.createStatement();
              ResultSet rs = queryStmt.executeQuery(
                      "SELECT tc.CONSTRAINT_NAME " +
                      "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc " +
                      "JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu " +
                      "  ON tc.CONSTRAINT_NAME = ccu.CONSTRAINT_NAME " +
-                     "WHERE tc.TABLE_NAME = 'RESTIC_REPOSITORIES' " +
+                     "WHERE tc.TABLE_NAME = '" + tableName + "' " +
                      "  AND tc.CONSTRAINT_TYPE = 'CHECK' " +
-                     "  AND ccu.COLUMN_NAME = 'TYPE'")) {
+                     "  AND ccu.COLUMN_NAME = '" + columnName + "'")) {
 
             while (rs.next()) {
                 String constraintName = rs.getString("CONSTRAINT_NAME");
                 try (Statement dropStmt = connection.createStatement()) {
-                    dropStmt.execute("ALTER TABLE RESTIC_REPOSITORIES DROP CONSTRAINT IF EXISTS \""
+                    dropStmt.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS \""
                             + constraintName + "\"");
                 }
             }
