@@ -71,7 +71,7 @@ public class AdminController {
             endDate = LocalDate.now();
         }
         LocalDateTime start = startDate.atStartOfDay();
-        LocalDateTime end = endDate.atTime(23, 59, 59);
+        LocalDateTime end = endDate.plusDays(1).atStartOfDay();
 
         Page<ErrorLogEntry> page = errorLogService.findErrors(start, end, pageable);
 
