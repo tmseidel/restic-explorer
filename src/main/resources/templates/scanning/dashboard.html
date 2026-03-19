@@ -76,19 +76,20 @@
             </div>
             <div th:if="${!#lists.isEmpty(repositories)}">
                 <!-- Grouped repositories -->
-                <div th:each="group : ${groups}" th:if="${groupedRepos.containsKey(group.id)}">
+                <div th:each="group : ${groups}" th:if="${groupedRepos.containsKey(group.id)}"
+                     th:with="groupKey='group-' + ${group.id}, isCollapsed=${collapsedGroups.contains('group-' + group.id)}">
                     <div class="bg-body-tertiary border-bottom px-3 py-2 d-flex justify-content-between align-items-center"
                          role="button"
-                         th:attr="data-bs-target='#group-' + ${group.id}, data-bs-toggle='collapse', data-group-id='group-' + ${group.id}"
+                         th:attr="data-bs-target='#' + ${groupKey}, data-bs-toggle='collapse', data-group-id=${groupKey}"
                          style="cursor: pointer; user-select: none;">
                         <div>
                             <i class="bi bi-collection"></i>
                             <strong th:text="${group.name}">Group</strong>
                             <span th:if="${group.description != null}" class="text-muted ms-2 small" th:text="${group.description}"></span>
                         </div>
-                        <i class="bi bi-chevron-up collapse-icon"></i>
+                        <i th:class="${isCollapsed} ? 'bi bi-chevron-down collapse-icon' : 'bi bi-chevron-up collapse-icon'"></i>
                     </div>
-                    <div th:id="'group-' + ${group.id}" class="collapse show">
+                    <div th:id="${groupKey}" th:class="${isCollapsed} ? 'collapse' : 'collapse show'">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -177,9 +178,9 @@
                             <i class="bi bi-folder"></i>
                             <strong th:text="#{dashboard.ungrouped}">Ungrouped</strong>
                         </div>
-                        <i class="bi bi-chevron-up collapse-icon"></i>
+                        <i th:class="${collapsedGroups.contains('group-ungrouped')} ? 'bi bi-chevron-down collapse-icon' : 'bi bi-chevron-up collapse-icon'"></i>
                     </div>
-                    <div id="group-ungrouped" class="collapse show">
+                    <div id="group-ungrouped" th:class="${collapsedGroups.contains('group-ungrouped')} ? 'collapse' : 'collapse show'">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -291,30 +292,16 @@
         if (!target) { return; }
         var icon = header.querySelector('.collapse-icon');
 
-        if (state[id] === 'collapsed') {
-            target.classList.remove('show');
-            if (icon) {
-                icon.classList.remove('bi-chevron-up');
-                icon.classList.add('bi-chevron-down');
-            }
-        }
-
         target.addEventListener('hidden.bs.collapse', function () {
             state[id] = 'collapsed';
             setCookie(COOKIE_NAME, JSON.stringify(state));
-            if (icon) {
-                icon.classList.remove('bi-chevron-up');
-                icon.classList.add('bi-chevron-down');
-            }
+            if (icon) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); }
         });
 
         target.addEventListener('shown.bs.collapse', function () {
             state[id] = 'expanded';
             setCookie(COOKIE_NAME, JSON.stringify(state));
-            if (icon) {
-                icon.classList.remove('bi-chevron-down');
-                icon.classList.add('bi-chevron-up');
-            }
+            if (icon) { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }
         });
     });
 }());
