@@ -33,6 +33,10 @@ public class RepositoryForm {
     private String s3SecretKey;
     private String s3Region;
 
+    private String azureAccountName;
+    private String azureAccountKey;
+    private String azureEndpointSuffix;
+
     @NotNull(message = "{validation.scanInterval.required}")
     @Min(value = 1, message = "{validation.scanInterval.min}")
     private Integer scanIntervalMinutes = 60;

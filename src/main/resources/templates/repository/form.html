@@ -76,7 +76,7 @@
                             <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
                         </div>
 
-                        <fieldset class="border rounded p-3 mb-3">
+                        <fieldset id="s3config" class="border rounded p-3 mb-3">
                             <legend class="w-auto px-2 fs-6" th:text="#{repository.form.s3config}">S3 Configuration</legend>
 
                             <div class="mb-3">
@@ -95,6 +95,28 @@
                                 <label for="s3Region" class="form-label" th:text="#{repository.form.s3.region}">Region</label>
                                 <input type="text" class="form-control" id="s3Region" th:field="*{s3Region}"
                                        th:placeholder="#{repository.form.s3.region.placeholder}">
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="azureconfig" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.azureconfig}">Azure Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="azureAccountName" class="form-label" th:text="#{repository.form.azure.accountName}">Account Name</label>
+                                <input type="text" class="form-control" id="azureAccountName" th:field="*{azureAccountName}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="azureAccountKey" class="form-label" th:text="#{repository.form.azure.accountKey}">Account Key</label>
+                                <input type="password" class="form-control" id="azureAccountKey" th:field="*{azureAccountKey}"
+                                       th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
+                                <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="azureEndpointSuffix" class="form-label" th:text="#{repository.form.azure.endpointSuffix}">Endpoint Suffix</label>
+                                <input type="text" class="form-control" id="azureEndpointSuffix" th:field="*{azureEndpointSuffix}"
+                                       th:placeholder="#{repository.form.azure.endpointSuffix.placeholder}">
                             </div>
                         </fieldset>
 
@@ -167,5 +189,23 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        const typeSelect = document.getElementById('type');
+        const s3config = document.getElementById('s3config');
+        const azureconfig = document.getElementById('azureconfig');
+
+        function updateVisibility() {
+            const selected = typeSelect ? typeSelect.value : '';
+            if (s3config) s3config.style.display = (selected === 'S3') ? '' : 'none';
+            if (azureconfig) azureconfig.style.display = (selected === 'AZURE') ? '' : 'none';
+        }
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', updateVisibility);
+            updateVisibility();
+        }
+    })();
+</script>
 </body>
 </html>
