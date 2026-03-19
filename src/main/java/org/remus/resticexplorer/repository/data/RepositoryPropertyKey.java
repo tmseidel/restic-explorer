@@ -10,7 +10,12 @@ public enum RepositoryPropertyKey {
     // S3-specific properties
     S3_ACCESS_KEY("Access Key", true),
     S3_SECRET_KEY("Secret Key", true),
-    S3_REGION("Region", false);
+    S3_REGION("Region", false),
+
+    // Azure-specific properties
+    AZURE_ACCOUNT_NAME("Account Name", false),
+    AZURE_ACCOUNT_KEY("Account Key", true),
+    AZURE_ENDPOINT_SUFFIX("Endpoint Suffix", false);
 
     private final String displayName;
     private final boolean sensitive;

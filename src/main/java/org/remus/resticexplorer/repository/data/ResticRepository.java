@@ -24,7 +24,7 @@ public class ResticRepository {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "VARCHAR(255)")
     @Enumerated(EnumType.STRING)
     private RepositoryType type;
 
@@ -37,7 +37,7 @@ public class ResticRepository {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "repository_properties", joinColumns = @JoinColumn(name = "repository_id"))
-    @MapKeyColumn(name = "property_key")
+    @MapKeyColumn(name = "property_key", columnDefinition = "VARCHAR(255)")
     @MapKeyEnumerated(EnumType.STRING)
     @Column(name = "property_value", length = 1024) // length accommodates AES-GCM encrypted values (IV + ciphertext + tag)
     private Map<RepositoryPropertyKey, String> properties = new EnumMap<>(RepositoryPropertyKey.class);
