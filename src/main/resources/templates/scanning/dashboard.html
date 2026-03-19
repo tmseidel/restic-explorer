@@ -77,11 +77,18 @@
             <div th:if="${!#lists.isEmpty(repositories)}">
                 <!-- Grouped repositories -->
                 <div th:each="group : ${groups}" th:if="${groupedRepos.containsKey(group.id)}">
-                    <div class="bg-body-tertiary border-bottom px-3 py-2">
-                        <i class="bi bi-collection"></i>
-                        <strong th:text="${group.name}">Group</strong>
-                        <span th:if="${group.description != null}" class="text-muted ms-2 small" th:text="${group.description}"></span>
+                    <div class="bg-body-tertiary border-bottom px-3 py-2 d-flex justify-content-between align-items-center"
+                         role="button"
+                         th:attr="data-bs-target='#group-' + ${group.id}, data-bs-toggle='collapse', data-group-id='group-' + ${group.id}"
+                         style="cursor: pointer; user-select: none;">
+                        <div>
+                            <i class="bi bi-collection"></i>
+                            <strong th:text="${group.name}">Group</strong>
+                            <span th:if="${group.description != null}" class="text-muted ms-2 small" th:text="${group.description}"></span>
+                        </div>
+                        <i class="bi bi-chevron-up collapse-icon"></i>
                     </div>
+                    <div th:id="'group-' + ${group.id}" class="collapse show">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -155,13 +162,24 @@
                             </tbody>
                         </table>
                     </div>
+                    </div>
                 </div>
                 <!-- Ungrouped repositories -->
                 <div th:if="${!#lists.isEmpty(ungroupedRepos)}">
-                    <div th:if="${!#lists.isEmpty(groups)}" class="bg-body-tertiary border-bottom px-3 py-2">
-                        <i class="bi bi-folder"></i>
-                        <strong th:text="#{dashboard.ungrouped}">Ungrouped</strong>
+                    <div th:if="${!#lists.isEmpty(groups)}"
+                         class="bg-body-tertiary border-bottom px-3 py-2 d-flex justify-content-between align-items-center"
+                         role="button"
+                         data-bs-target="#group-ungrouped"
+                         data-bs-toggle="collapse"
+                         data-group-id="group-ungrouped"
+                         style="cursor: pointer; user-select: none;">
+                        <div>
+                            <i class="bi bi-folder"></i>
+                            <strong th:text="#{dashboard.ungrouped}">Ungrouped</strong>
+                        </div>
+                        <i class="bi bi-chevron-up collapse-icon"></i>
                     </div>
+                    <div id="group-ungrouped" class="collapse show">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -235,6 +253,7 @@
                             </tbody>
                         </table>
                     </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -242,6 +261,64 @@
 </main>
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
+<script>
+(function () {
+    var COOKIE_NAME = 'restic_group_state';
+
+    function getCookie(name) {
+        var match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function setCookie(name, value) {
+        var d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        var secure = location.protocol === 'https:' ? ';Secure' : '';
+        document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax' + secure;
+    }
+
+    var state = {};
+    try {
+        var raw = getCookie(COOKIE_NAME);
+        if (raw) { state = JSON.parse(raw); }
+    } catch (e) {
+        console.warn('Failed to parse group state cookie:', e);
+    }
+
+    document.querySelectorAll('[data-group-id]').forEach(function (header) {
+        var id = header.getAttribute('data-group-id');
+        var target = document.getElementById(id);
+        if (!target) { return; }
+        var icon = header.querySelector('.collapse-icon');
+
+        if (state[id] === 'collapsed') {
+            target.classList.remove('show');
+            if (icon) {
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+        }
+
+        target.addEventListener('hidden.bs.collapse', function () {
+            state[id] = 'collapsed';
+            setCookie(COOKIE_NAME, JSON.stringify(state));
+            if (icon) {
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+        });
+
+        target.addEventListener('shown.bs.collapse', function () {
+            state[id] = 'expanded';
+            setCookie(COOKIE_NAME, JSON.stringify(state));
+            if (icon) {
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-up');
+            }
+        });
+    });
+}());
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
