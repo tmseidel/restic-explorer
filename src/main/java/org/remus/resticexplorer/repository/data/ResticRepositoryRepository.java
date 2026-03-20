@@ -1,6 +1,7 @@
 package org.remus.resticexplorer.repository.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 public interface ResticRepositoryRepository extends JpaRepository<ResticRepository, Long> {

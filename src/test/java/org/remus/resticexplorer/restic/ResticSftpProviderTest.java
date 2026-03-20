@@ -5,9 +5,12 @@ import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.RepositoryType;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResticSftpProviderTest {
 
@@ -47,33 +50,28 @@ class ResticSftpProviderTest {
     }
 
     @Test
-    void testBuildEnvironmentWithSftpCommand() {
+    void testBuildExtraArgumentsWithSftpCommand() {
         ResticRepository repo = new ResticRepository();
         repo.setType(RepositoryType.SFTP);
         repo.setUrl("sftp:user@host:/srv/restic-repo");
-        repo.setRepositoryPassword("secret");
         repo.setProperty(RepositoryPropertyKey.SFTP_COMMAND, "ssh user@host -i /path/to/key -s sftp");
 
-        Map<String, String> env = provider.buildEnvironment(repo);
+        List<String> args = provider.buildExtraArguments(repo);
 
-        assertEquals("secret", env.get("RESTIC_PASSWORD"));
-        assertEquals("ssh user@host -i /path/to/key -s sftp", env.get("RESTIC_SFTP_COMMAND"));
+        assertEquals(2, args.size());
+        assertEquals("-o", args.get(0));
+        assertEquals("sftp.command=ssh user@host -i /path/to/key -s sftp", args.get(1));
     }
 
     @Test
-    void testBuildEnvironmentWithAllOptions() {
+    void testBuildExtraArgumentsWithoutSftpCommand() {
         ResticRepository repo = new ResticRepository();
         repo.setType(RepositoryType.SFTP);
         repo.setUrl("sftp:user@host:/srv/restic-repo");
-        repo.setRepositoryPassword("secret");
-        repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, "cat /path/to/password-file");
-        repo.setProperty(RepositoryPropertyKey.SFTP_COMMAND, "ssh user@host -i /path/to/key -s sftp");
 
-        Map<String, String> env = provider.buildEnvironment(repo);
+        List<String> args = provider.buildExtraArguments(repo);
 
-        assertEquals("cat /path/to/password-file", env.get("RESTIC_PASSWORD_COMMAND"));
-        assertFalse(env.containsKey("RESTIC_PASSWORD"));
-        assertEquals("ssh user@host -i /path/to/key -s sftp", env.get("RESTIC_SFTP_COMMAND"));
+        assertTrue(args.isEmpty());
     }
 
     @Test

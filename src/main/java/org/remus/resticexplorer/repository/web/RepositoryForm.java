@@ -1,9 +1,9 @@
 package org.remus.resticexplorer.repository.web;
 
-import lombok.Data;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
+import lombok.Data;
 import org.remus.resticexplorer.repository.data.RepositoryType;
 
 @Data
