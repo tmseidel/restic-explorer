@@ -78,7 +78,7 @@
                             <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
                         </div>
 
-                        <fieldset id="s3config" class="border rounded p-3 mb-3">
+                        <fieldset id="config-s3" class="border rounded p-3 mb-3">
                             <legend class="w-auto px-2 fs-6" th:text="#{repository.form.s3config}">S3 Configuration</legend>
 
                             <div class="mb-3">
@@ -100,7 +100,7 @@
                             </div>
                         </fieldset>
 
-                        <fieldset id="azureconfig" class="border rounded p-3 mb-3">
+                        <fieldset id="config-azure" class="border rounded p-3 mb-3">
                             <legend class="w-auto px-2 fs-6" th:text="#{repository.form.azureconfig}">Azure Configuration</legend>
 
                             <div class="mb-3">
@@ -122,7 +122,7 @@
                             </div>
                         </fieldset>
 
-                        <fieldset id="sftpconfig" class="border rounded p-3 mb-3">
+                        <fieldset id="config-sftp" class="border rounded p-3 mb-3">
                             <legend class="w-auto px-2 fs-6" th:text="#{repository.form.sftpconfig}">SFTP Configuration</legend>
 
                             <div class="mb-3">
@@ -213,21 +213,15 @@
 <script>
     (function () {
         const typeSelect = document.getElementById('type');
-        const s3config = document.getElementById('s3config');
-        const azureconfig = document.getElementById('azureconfig');
-        const sftpconfig = document.getElementById('sftpconfig');
-        const urlHintS3 = document.getElementById('url-hint-s3');
-        const urlHintAzure = document.getElementById('url-hint-azure');
-        const urlHintSftp = document.getElementById('url-hint-sftp');
 
         function updateVisibility() {
-            const selected = typeSelect ? typeSelect.value : '';
-            if (s3config) s3config.style.display = (selected === 'S3') ? '' : 'none';
-            if (azureconfig) azureconfig.style.display = (selected === 'AZURE') ? '' : 'none';
-            if (sftpconfig) sftpconfig.style.display = (selected === 'SFTP') ? '' : 'none';
-            if (urlHintS3) urlHintS3.style.display = (selected === 'S3') ? '' : 'none';
-            if (urlHintAzure) urlHintAzure.style.display = (selected === 'AZURE') ? '' : 'none';
-            if (urlHintSftp) urlHintSftp.style.display = (selected === 'SFTP') ? '' : 'none';
+            const selected = typeSelect ? typeSelect.value.toLowerCase() : '';
+            document.querySelectorAll('[id^="config-"]').forEach(function (el) {
+                el.style.display = el.id === 'config-' + selected ? '' : 'none';
+            });
+            document.querySelectorAll('[id^="url-hint-"]').forEach(function (el) {
+                el.style.display = el.id === 'url-hint-' + selected ? '' : 'none';
+            });
         }
 
         if (typeSelect) {
