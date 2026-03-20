@@ -1,8 +1,8 @@
 package org.remus.resticexplorer.config;
 
-import org.remus.resticexplorer.admin.AdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.remus.resticexplorer.admin.AdminService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
