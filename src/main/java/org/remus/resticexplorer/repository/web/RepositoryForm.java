@@ -37,6 +37,9 @@ public class RepositoryForm {
     private String azureAccountKey;
     private String azureEndpointSuffix;
 
+    private String sftpPasswordCommand;
+    private String sftpCommand;
+
     @NotNull(message = "{validation.scanInterval.required}")
     @Min(value = 1, message = "{validation.scanInterval.min}")
     private Integer scanIntervalMinutes = 60;

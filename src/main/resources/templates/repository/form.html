@@ -64,6 +64,7 @@
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('url')}" th:errors="*{url}"></div>
                             <div id="url-hint-s3" class="form-text" th:utext="#{repository.form.url.hint}">For S3: ...</div>
                             <div id="url-hint-azure" class="form-text" th:utext="#{repository.form.url.hint.azure}">For Azure: ...</div>
+                            <div id="url-hint-sftp" class="form-text" th:utext="#{repository.form.url.hint.sftp}">For SFTP: ...</div>
                         </div>
 
                         <div class="mb-3">
@@ -118,6 +119,24 @@
                                 <label for="azureEndpointSuffix" class="form-label" th:text="#{repository.form.azure.endpointSuffix}">Endpoint Suffix</label>
                                 <input type="text" class="form-control" id="azureEndpointSuffix" th:field="*{azureEndpointSuffix}"
                                        th:placeholder="#{repository.form.azure.endpointSuffix.placeholder}">
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="sftpconfig" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.sftpconfig}">SFTP Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="sftpPasswordCommand" class="form-label" th:text="#{repository.form.sftp.passwordCommand}">Password Command</label>
+                                <input type="text" class="form-control" id="sftpPasswordCommand" th:field="*{sftpPasswordCommand}"
+                                       th:placeholder="#{repository.form.sftp.passwordCommand.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.sftp.passwordCommand.hint}">...</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sftpCommand" class="form-label" th:text="#{repository.form.sftp.command}">SFTP Command</label>
+                                <input type="text" class="form-control" id="sftpCommand" th:field="*{sftpCommand}"
+                                       th:placeholder="#{repository.form.sftp.command.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.sftp.command.hint}">...</div>
                             </div>
                         </fieldset>
 
@@ -195,15 +214,19 @@
         const typeSelect = document.getElementById('type');
         const s3config = document.getElementById('s3config');
         const azureconfig = document.getElementById('azureconfig');
+        const sftpconfig = document.getElementById('sftpconfig');
         const urlHintS3 = document.getElementById('url-hint-s3');
         const urlHintAzure = document.getElementById('url-hint-azure');
+        const urlHintSftp = document.getElementById('url-hint-sftp');
 
         function updateVisibility() {
             const selected = typeSelect ? typeSelect.value : '';
             if (s3config) s3config.style.display = (selected === 'S3') ? '' : 'none';
             if (azureconfig) azureconfig.style.display = (selected === 'AZURE') ? '' : 'none';
+            if (sftpconfig) sftpconfig.style.display = (selected === 'SFTP') ? '' : 'none';
             if (urlHintS3) urlHintS3.style.display = (selected === 'S3') ? '' : 'none';
             if (urlHintAzure) urlHintAzure.style.display = (selected === 'AZURE') ? '' : 'none';
+            if (urlHintSftp) urlHintSftp.style.display = (selected === 'SFTP') ? '' : 'none';
         }
 
         if (typeSelect) {

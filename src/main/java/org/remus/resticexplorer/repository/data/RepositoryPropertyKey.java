@@ -15,7 +15,11 @@ public enum RepositoryPropertyKey {
     // Azure-specific properties
     AZURE_ACCOUNT_NAME("Account Name", false),
     AZURE_ACCOUNT_KEY("Account Key", true),
-    AZURE_ENDPOINT_SUFFIX("Endpoint Suffix", false);
+    AZURE_ENDPOINT_SUFFIX("Endpoint Suffix", false),
+
+    // SFTP-specific properties
+    SFTP_PASSWORD_COMMAND("Password Command", false),
+    SFTP_COMMAND("SFTP Command", false);
 
     private final String displayName;
     private final boolean sensitive;

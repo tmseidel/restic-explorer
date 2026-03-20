@@ -6,14 +6,14 @@ A web-based dashboard for managing and exploring [restic](https://restic.net/) b
 
 ## Features
 
-- **Repository Management** – CRUD operations for restic backup repositories (S3 supported, extensible architecture for future backends)
+- **Repository Management** – CRUD operations for restic backup repositories (S3, Azure Blob Storage, and SFTP supported; extensible architecture for additional backends)
 - **Automated Scanning** – Configurable scheduled scans to cache restic metadata
 - **Integrity Checks** – Scheduled restic consistency and integrity verification (`restic check`) with configurable intervals per repository
 - **Dashboard** – Overview of all repositories, snapshot counts, scan and integrity check status
 - **Snapshot Browser** – View all snapshots with details (hostname, paths, tags, timestamps)
 - **Snapshot Download** – Admin-only download of specific snapshots as tar archives
 - **Single Admin Account** – Simple authentication with password setup on first launch
-- **Encrypted Sensitive Data** – Repository passwords and S3 credentials encrypted at rest using AES-256-GCM
+- **Encrypted Sensitive Data** – Repository passwords and backend credentials encrypted at rest using AES-256-GCM
 - **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache and integrity check status
 - **Internationalization** – All UI text externalized via message bundles; add new languages by adding `messages_xx.properties`
 - **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
@@ -131,15 +131,64 @@ On first launch, you are redirected to the **Setup** page:
    - **Name**: A friendly display name
    - **Enabled**: Toggle to enable or disable the repository. When disabled, automatic scanning and integrity checks are paused.
    - **Group**: Optionally assign the repository to a group for organizing the dashboard
-   - **Repository Type**: Select S3 (more types planned)
-   - **Repository URL**: The restic repository URL, e.g. `s3:https://s3.amazonaws.com/my-bucket/restic-repo`
+   - **Repository Type**: Select the backend type (see [Supported Repository Connectors](#supported-repository-connectors))
+   - **Repository URL**: The restic repository URL (format depends on the backend type)
    - **Repository Password**: The encryption password for the restic repository
-   - **S3 Access Key / Secret Key / Region**: Your AWS or S3-compatible credentials
+   - **Backend-specific settings**: Depending on the selected type (S3 credentials, Azure account details, or SFTP command options)
    - **Retention Policy** *(optional)*: Define expected backup frequency (see [Retention Policies](#9-retention-policies))
    - **Comment**: Optional notes or description for the repository
    - **Scan Interval**: How often (in minutes) to automatically scan for new snapshots
    - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (set to `0` to disable)
 4. Click **Save**
+
+### Supported Repository Connectors
+
+| Connector | Repository Type | URL Format | Additional Settings |
+|---|---|---|---|
+| **Amazon S3 / S3-Compatible** | `S3` | `s3:https://s3.amazonaws.com/bucket/path` or `s3:https://custom-endpoint/bucket/path` | Access Key, Secret Key, Region |
+| **Microsoft Azure Blob Storage** | `AZURE` | `azure:container-name:/path` | Account Name, Account Key, Endpoint Suffix |
+| **SFTP** | `SFTP` | `sftp:user@host:/path/to/repo` or `sftp://user@host:port//path/to/repo` | Password Command (optional), SFTP Command (optional) |
+
+#### SFTP Connector Details
+
+The SFTP connector allows browsing restic repositories stored on remote servers accessible via SSH/SFTP.
+
+- **Repository URL**: Use the standard restic SFTP URL format, e.g. `sftp:user@host:/srv/restic-repo`
+- **Password Command** *(optional)*: A shell command that prints the repository password to stdout (e.g. `cat /path/to/password-file`). When set, this takes precedence over the Repository Password field.
+- **SFTP Command** *(optional)*: A custom SSH command used for the SFTP connection. Use this to specify a private key for key-based authentication, e.g. `ssh user@host -i /root/.ssh/id_rsa -s sftp`.
+
+#### Mounting SSH Private Keys in Docker
+
+When using the SFTP connector in a Docker deployment, the container needs access to the SSH private key file on the host machine. Mount the key file (or the `.ssh` directory) into the container:
+
+**Docker Compose** — add a bind-mount volume to the `app` service in `docker-compose.yml`:
+
+```yaml
+services:
+  app:
+    image: tmseidel/restic-explorer:latest
+    # ... other settings ...
+    volumes:
+      - app-data:/app/data
+      - /home/youruser/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+```
+
+**Docker Run** — use the `-v` flag:
+
+```bash
+docker run -d \
+  -p 8080:8080 \
+  -v /home/youruser/.ssh/id_rsa:/root/.ssh/id_rsa:ro \
+  tmseidel/restic-explorer:latest
+```
+
+Then, in the SFTP repository configuration, set the **SFTP Command** to reference the mounted key path inside the container:
+
+```
+ssh user@host -i /root/.ssh/id_rsa -s sftp
+```
+
+> ⚠️ **Tip**: Mount the key as read-only (`:ro`) for security. Ensure the file permissions on the host key are restrictive (`chmod 600`).
 
 ### 3. Dashboard
 
@@ -354,6 +403,8 @@ src/main/java/org/remus/resticexplorer/
 ├── restic/                            # Restic CLI integration
 │   ├── ResticRepositoryProvider.java  # Provider interface (extensible)
 │   ├── ResticS3Provider.java          # S3 implementation
+│   ├── ResticAzureProvider.java       # Azure Blob Storage implementation
+│   ├── ResticSftpProvider.java        # SFTP implementation
 │   └── ResticCommandService.java      # Command execution service
 └── health/                            # Actuator health indicator
     └── ResticMetadataHealthIndicator.java
