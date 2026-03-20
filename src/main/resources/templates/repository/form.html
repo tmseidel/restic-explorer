@@ -127,9 +127,10 @@
 
                             <div class="mb-3">
                                 <label for="sftpPasswordCommand" class="form-label" th:text="#{repository.form.sftp.passwordCommand}">Password Command</label>
-                                <input type="text" class="form-control" id="sftpPasswordCommand" th:field="*{sftpPasswordCommand}"
-                                       th:placeholder="#{repository.form.sftp.passwordCommand.placeholder}">
-                                <div class="form-text" th:utext="#{repository.form.sftp.passwordCommand.hint}">...</div>
+                                <input type="password" class="form-control" id="sftpPasswordCommand" th:field="*{sftpPasswordCommand}"
+                                       th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : #{repository.form.sftp.passwordCommand.placeholder}">
+                                <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
+                                <div class="form-text" th:if="${repositoryForm.id == null}" th:utext="#{repository.form.sftp.passwordCommand.hint}">...</div>
                             </div>
 
                             <div class="mb-3">

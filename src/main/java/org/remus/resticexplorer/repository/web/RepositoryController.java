@@ -115,16 +115,20 @@ public class RepositoryController {
                     && RepositoryForm.isChanged(form.getAzureAccountKey())) {
                 repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_KEY, form.getAzureAccountKey());
             }
+            if (org.springframework.util.StringUtils.hasText(form.getSftpPasswordCommand())
+                    && RepositoryForm.isChanged(form.getSftpPasswordCommand())) {
+                repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, form.getSftpPasswordCommand());
+            }
         } else {
             repo.setRepositoryPassword(form.getRepositoryPassword());
             repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
             repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_KEY, form.getAzureAccountKey());
+            repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, form.getSftpPasswordCommand());
         }
         repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, form.getS3AccessKey());
         repo.setProperty(RepositoryPropertyKey.S3_REGION, form.getS3Region());
         repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_NAME, form.getAzureAccountName());
         repo.setProperty(RepositoryPropertyKey.AZURE_ENDPOINT_SUFFIX, form.getAzureEndpointSuffix());
-        repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, form.getSftpPasswordCommand());
         repo.setProperty(RepositoryPropertyKey.SFTP_COMMAND, form.getSftpCommand());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setCheckIntervalMinutes(form.getCheckIntervalMinutes());

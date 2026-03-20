@@ -170,7 +170,7 @@ services:
     # ... other settings ...
     volumes:
       - app-data:/app/data
-      - /home/youruser/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      - /home/youruser/.ssh/id_rsa:/app/ssh/id_rsa:ro
 ```
 
 **Docker Run** — use the `-v` flag:
@@ -178,14 +178,14 @@ services:
 ```bash
 docker run -d \
   -p 8080:8080 \
-  -v /home/youruser/.ssh/id_rsa:/root/.ssh/id_rsa:ro \
+  -v /home/youruser/.ssh/id_rsa:/app/ssh/id_rsa:ro \
   tmseidel/restic-explorer:latest
 ```
 
 Then, in the SFTP repository configuration, set the **SFTP Command** to reference the mounted key path inside the container:
 
 ```
-ssh user@host -i /root/.ssh/id_rsa -s sftp
+ssh user@host -i /app/ssh/id_rsa -s sftp
 ```
 
 > ⚠️ **Tip**: Mount the key as read-only (`:ro`) for security. Ensure the file permissions on the host key are restrictive (`chmod 600`).

@@ -18,7 +18,7 @@ public enum RepositoryPropertyKey {
     AZURE_ENDPOINT_SUFFIX("Endpoint Suffix", false),
 
     // SFTP-specific properties
-    SFTP_PASSWORD_COMMAND("Password Command", false),
+    SFTP_PASSWORD_COMMAND("Password Command", true),
     SFTP_COMMAND("SFTP Command", false);
 
     private final String displayName;
