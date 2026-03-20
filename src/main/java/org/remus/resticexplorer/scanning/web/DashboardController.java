@@ -10,7 +10,6 @@ import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.scanning.CheckService;
-import org.remus.resticexplorer.scanning.RetentionPolicyChecker;
 import org.remus.resticexplorer.scanning.RetentionPolicyResult;
 import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.CheckResult;
