@@ -1,7 +1,7 @@
 package org.remus.resticexplorer.repository.web;
 
-import lombok.Data;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 @Data
 public class GroupForm {

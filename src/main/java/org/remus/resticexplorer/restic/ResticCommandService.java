@@ -76,9 +76,16 @@ public class ResticCommandService {
         Map<String, String> env = provider.buildEnvironment(repository);
         String repoUrl = provider.buildRepositoryUrl(repository);
 
-        ProcessBuilder pb = new ProcessBuilder(
-                resticBinary, "-r", repoUrl, "dump", snapshotId, "/"
-        );
+        List<String> command = new ArrayList<>();
+        command.add(resticBinary);
+        command.add("-r");
+        command.add(repoUrl);
+        command.addAll(provider.buildExtraArguments(repository));
+        command.add("dump");
+        command.add(snapshotId);
+        command.add("/");
+
+        ProcessBuilder pb = new ProcessBuilder(command);
         pb.environment().putAll(env);
         pb.redirectErrorStream(false);
 
@@ -99,6 +106,7 @@ public class ResticCommandService {
         command.add(resticBinary);
         command.add("-r");
         command.add(repoUrl);
+        command.addAll(provider.buildExtraArguments(repository));
         command.addAll(Arrays.asList(args));
 
         log.debug("Executing restic command: {}", String.join(" ", command));
@@ -132,7 +140,7 @@ public class ResticCommandService {
 
                 // Build a sanitized, user-facing message without exposing raw stderr.
                 String message;
-                if (stderr != null && stderr.contains("unsupported repository version")) {
+                if (stderr.contains("unsupported repository version")) {
                     // Use a stable message key that can be localized/resolved in the UI layer.
                     message = "error.restic.unsupportedRepoVersion";
                 } else {

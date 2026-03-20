@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RetentionPolicyCheckerTest {
 
@@ -45,8 +47,8 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains("10"));
-        assertTrue(result.getViolations().get(0).contains("7"));
+        assertTrue(result.getViolations().getFirst().contains("10"));
+        assertTrue(result.getViolations().getFirst().contains("7"));
     }
 
     @Test
@@ -94,7 +96,7 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains(REF.minusDays(3).toString()));
+        assertTrue(result.getViolations().getFirst().contains(REF.minusDays(3).toString()));
     }
 
     @Test
@@ -146,7 +148,7 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains("keepWeekly"));
+        assertTrue(result.getViolations().getFirst().contains("keepWeekly"));
     }
 
     @Test
@@ -187,7 +189,7 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains("keepMonthly"));
+        assertTrue(result.getViolations().getFirst().contains("keepMonthly"));
     }
 
     // =========================================================================
@@ -212,8 +214,8 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains("keepYearly"));
-        assertTrue(result.getViolations().get(0).contains(String.valueOf(REF.minusYears(1).getYear())));
+        assertTrue(result.getViolations().getFirst().contains("keepYearly"));
+        assertTrue(result.getViolations().getFirst().contains(String.valueOf(REF.minusYears(1).getYear())));
     }
 
     // =========================================================================
@@ -271,7 +273,7 @@ class RetentionPolicyCheckerTest {
         RetentionPolicyResult result = checker.check(repo, snapshots, REF);
         assertFalse(result.isFulfilled());
         assertEquals(1, result.getViolations().size());
-        assertTrue(result.getViolations().get(0).contains("keepLast"));
+        assertTrue(result.getViolations().getFirst().contains("keepLast"));
     }
 
     @Test
@@ -316,7 +318,7 @@ class RetentionPolicyCheckerTest {
 
         RetentionPolicyResult result = checker.check(repo, List.of(withNullTime), REF);
         assertFalse(result.isFulfilled());
-        assertTrue(result.getViolations().get(0).contains("keepLast"));
+        assertTrue(result.getViolations().getFirst().contains("keepLast"));
     }
 
     // =========================================================================

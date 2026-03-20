@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -34,7 +37,7 @@ class ErrorLogServiceTest {
 
         List<ErrorLogEntry> entries = errorLogRepository.findAll();
         assertEquals(1, entries.size());
-        ErrorLogEntry entry = entries.get(0);
+        ErrorLogEntry entry = entries.getFirst();
         assertEquals(1L, entry.getRepositoryId());
         assertEquals("TestRepo", entry.getRepositoryName());
         assertEquals("SCAN", entry.getAction());
@@ -51,7 +54,7 @@ class ErrorLogServiceTest {
 
         List<ErrorLogEntry> entries = errorLogRepository.findAll();
         assertEquals(1, entries.size());
-        assertEquals("from exception", entries.get(0).getErrorMessage());
+        assertEquals("from exception", entries.getFirst().getErrorMessage());
     }
 
     @Test
@@ -60,8 +63,8 @@ class ErrorLogServiceTest {
 
         List<ErrorLogEntry> entries = errorLogRepository.findAll();
         assertEquals(1, entries.size());
-        assertEquals("Manual error", entries.get(0).getErrorMessage());
-        assertNull(entries.get(0).getStackTrace());
+        assertEquals("Manual error", entries.getFirst().getErrorMessage());
+        assertNull(entries.getFirst().getStackTrace());
     }
 
     @Test
@@ -87,13 +90,12 @@ class ErrorLogServiceTest {
         errorLogRepository.save(outside);
 
         LocalDateTime start = now.minusDays(7);
-        LocalDateTime end = now;
 
-        Page<ErrorLogEntry> page = errorLogService.findErrors(start, end,
+        Page<ErrorLogEntry> page = errorLogService.findErrors(start, now,
                 PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "timestamp")));
 
         assertEquals(1, page.getTotalElements());
-        assertEquals("error inside", page.getContent().get(0).getErrorMessage());
+        assertEquals("error inside", page.getContent().getFirst().getErrorMessage());
     }
 
     @Test
@@ -149,6 +151,6 @@ class ErrorLogServiceTest {
         errorLogService.cleanupOldEntries();
 
         assertEquals(1, errorLogRepository.count());
-        assertEquals("recent", errorLogRepository.findAll().get(0).getErrorMessage());
+        assertEquals("recent", errorLogRepository.findAll().getFirst().getErrorMessage());
     }
 }

@@ -1,24 +1,35 @@
 FROM eclipse-temurin:21-jdk-alpine AS build
 
 WORKDIR /app
+
+# Cache Maven dependencies in a separate layer
 COPY pom.xml .
-COPY src ./src
-
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests
+    mvn dependency:go-offline -B
 
+# Build the application (source changes don't bust the dependency cache)
+COPY src ./src
+RUN mvn clean package -DskipTests -o
+
+# --- Runtime image ---
 FROM eclipse-temurin:21-jre-alpine
 
-RUN apk add --no-cache restic ca-certificates
+RUN apk add --no-cache restic ca-certificates openssh-client curl && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    mkdir -p /app/data /app/ssh && chown -R appuser:appgroup /app
 
 WORKDIR /app
+COPY --from=build --chown=appuser:appgroup /app/target/*.jar app.jar
 
-COPY --from=build /app/target/*.jar app.jar
-
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-RUN mkdir -p /app/data && chown -R appuser:appgroup /app
 USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -sf http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75.0", \
+    "-jar", "app.jar", \
+    "--spring.profiles.active=docker"]

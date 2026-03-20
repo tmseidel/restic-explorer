@@ -5,6 +5,7 @@ import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -24,11 +25,16 @@ public class ResticSftpProvider implements ResticRepositoryProvider {
         } else {
             env.put("RESTIC_PASSWORD", repository.getRepositoryPassword());
         }
+        return env;
+    }
+
+    @Override
+    public List<String> buildExtraArguments(ResticRepository repository) {
         String sftpCommand = repository.getProperty(RepositoryPropertyKey.SFTP_COMMAND);
         if (sftpCommand != null && !sftpCommand.isBlank()) {
-            env.put("RESTIC_SFTP_COMMAND", sftpCommand);
+            return List.of("-o", "sftp.command=" + sftpCommand);
         }
-        return env;
+        return List.of();
     }
 
     @Override
