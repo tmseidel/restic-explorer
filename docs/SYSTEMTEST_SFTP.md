@@ -111,7 +111,7 @@ services:
   app:
     # ... existing app config ...
     volumes:
-      - ./sftp-test-key:/app/ssh/sftp-test-key:ro
+      - ./test-sftp-key:/app/ssh/test-sftp-key:ro
 
   sftp:
     image: lscr.io/linuxserver/openssh-server:latest
@@ -121,9 +121,9 @@ services:
 Configure the repository in Restic Explorer:
 
 - **Repository URL**: `sftp:testuser@sftp:/config/restic-repo`
-- **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /app/ssh/sftp-test-key -p 2222 testuser@sftp -s sftp`
+- **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /app/ssh/test-sftp-key -p 2222 testuser@sftp -s sftp`
 
-> **Note**: Use the Docker service name `sftp` as hostname instead of `localhost`.
+> **Note**: Use the Docker service name `sftp` as hostname instead of `localhost`. The container user runs as UID 1000, matching the default Linux user, so mounted key permissions work automatically.
 
 ## 6. Cleanup
 
