@@ -10,10 +10,10 @@ This tutorial sets up a local SFTP test environment using `lscr.io/linuxserver/o
 ## 1. Generate an SSH Key Pair
 
 ```bash
-ssh-keygen -t ed25519 -f ./sftp-test-key -N ""
+ssh-keygen -t ed25519 -f ./test-sftp-key -N ""
 ```
 
-This creates `sftp-test-key` (private) and `sftp-test-key.pub` (public).
+This creates `test-sftp-key` (private) and `test-sftp-key.pub` (public).
 
 ## 2. Start the OpenSSH Server
 
@@ -57,7 +57,7 @@ docker exec sftp-test chmod 600 /config/.ssh/authorized_keys
 Verify SSH connectivity:
 
 ```bash
-ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost echo "SSH OK"
+ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost echo "SSH OK"
 ```
 
 ## 3. Initialize a Restic Repository over SFTP
@@ -67,7 +67,7 @@ ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost mk
 
 export RESTIC_PASSWORD="test1234"
 restic -r sftp:testuser@localhost:/config/restic-repo \
-       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost -s sftp" \
+       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost -s sftp" \
        init
 ```
 
@@ -76,7 +76,7 @@ restic -r sftp:testuser@localhost:/config/restic-repo \
 ```bash
 export RESTIC_PASSWORD="test1234"
 restic -r sftp:testuser@localhost:/config/restic-repo \
-       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost -s sftp" \
+       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost -s sftp" \
        backup /tmp
 ```
 
@@ -84,7 +84,7 @@ Verify:
 
 ```bash
 restic -r sftp:testuser@localhost:/config/restic-repo \
-       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost -s sftp" \
+       -o sftp.command="ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost -s sftp" \
        snapshots
 ```
 
@@ -99,7 +99,7 @@ restic -r sftp:testuser@localhost:/config/restic-repo \
    - **Repository Type**: `SFTP`
    - **Repository URL**: `sftp:testuser@localhost:/config/restic-repo`
    - **Repository Password**: `test1234`
-   - **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /absolute/path/to/sftp-test-key -p 2222 testuser@localhost -s sftp`
+   - **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /absolute/path/to/test-sftp-key -p 2222 testuser@localhost -s sftp`
 4. Click **Save**, then trigger a scan from the dashboard
 
 ### Running in Docker
@@ -111,7 +111,7 @@ services:
   app:
     # ... existing app config ...
     volumes:
-      - ./sftp-test-key:/app/ssh/sftp-test-key:ro
+      - ./test-sftp-key:/app/ssh/test-sftp-key:ro
 
   sftp:
     image: lscr.io/linuxserver/openssh-server:latest
@@ -121,9 +121,9 @@ services:
 Configure the repository in Restic Explorer:
 
 - **Repository URL**: `sftp:testuser@sftp:/config/restic-repo`
-- **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /app/ssh/sftp-test-key -p 2222 testuser@sftp -s sftp`
+- **SFTP Command**: `ssh -o StrictHostKeyChecking=no -i /app/ssh/test-sftp-key -p 2222 testuser@sftp -s sftp`
 
-> **Note**: Use the Docker service name `sftp` as hostname instead of `localhost`.
+> **Note**: Use the Docker service name `sftp` as hostname instead of `localhost`. The container user runs as UID 1000, matching the default Linux user, so mounted key permissions work automatically.
 
 ## 6. Cleanup
 
