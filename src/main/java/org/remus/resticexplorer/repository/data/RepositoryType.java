@@ -1,7 +1,9 @@
 package org.remus.resticexplorer.repository.data;
 
 public enum RepositoryType {
-    S3("Amazon S3 / S3-Compatible");
+    S3("Amazon S3 / S3-Compatible"),
+    AZURE("Microsoft Azure Blob Storage"),
+    SFTP("SFTP");
 
     private final String displayName;
 

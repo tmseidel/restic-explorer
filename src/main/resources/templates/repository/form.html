@@ -62,7 +62,9 @@
                                    th:classappend="${#fields.hasErrors('url')} ? 'is-invalid' : ''"
                                    th:placeholder="#{repository.form.url.placeholder}">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('url')}" th:errors="*{url}"></div>
-                            <div class="form-text" th:utext="#{repository.form.url.hint}">For S3: <code>s3:https://s3.amazonaws.com/bucket-name/path</code> or <code>s3:https://custom-endpoint/bucket/path</code></div>
+                            <div id="url-hint-s3" class="form-text" th:utext="#{repository.form.url.hint}">For S3: ...</div>
+                            <div id="url-hint-azure" class="form-text" th:utext="#{repository.form.url.hint.azure}">For Azure: ...</div>
+                            <div id="url-hint-sftp" class="form-text" th:utext="#{repository.form.url.hint.sftp}">For SFTP: ...</div>
                         </div>
 
                         <div class="mb-3">
@@ -76,7 +78,7 @@
                             <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.password.hint}">The password used to encrypt the restic repository.</div>
                         </div>
 
-                        <fieldset class="border rounded p-3 mb-3">
+                        <fieldset id="config-s3" class="border rounded p-3 mb-3">
                             <legend class="w-auto px-2 fs-6" th:text="#{repository.form.s3config}">S3 Configuration</legend>
 
                             <div class="mb-3">
@@ -95,6 +97,46 @@
                                 <label for="s3Region" class="form-label" th:text="#{repository.form.s3.region}">Region</label>
                                 <input type="text" class="form-control" id="s3Region" th:field="*{s3Region}"
                                        th:placeholder="#{repository.form.s3.region.placeholder}">
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="config-azure" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.azureconfig}">Azure Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="azureAccountName" class="form-label" th:text="#{repository.form.azure.accountName}">Account Name</label>
+                                <input type="text" class="form-control" id="azureAccountName" th:field="*{azureAccountName}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="azureAccountKey" class="form-label" th:text="#{repository.form.azure.accountKey}">Account Key</label>
+                                <input type="password" class="form-control" id="azureAccountKey" th:field="*{azureAccountKey}"
+                                       th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
+                                <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="azureEndpointSuffix" class="form-label" th:text="#{repository.form.azure.endpointSuffix}">Endpoint Suffix</label>
+                                <input type="text" class="form-control" id="azureEndpointSuffix" th:field="*{azureEndpointSuffix}"
+                                       th:placeholder="#{repository.form.azure.endpointSuffix.placeholder}">
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="config-sftp" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.sftpconfig}">SFTP Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="sftpPasswordCommand" class="form-label" th:text="#{repository.form.sftp.passwordCommand}">Password Command</label>
+                                <input type="text" class="form-control" id="sftpPasswordCommand" th:field="*{sftpPasswordCommand}"
+                                       th:placeholder="#{repository.form.sftp.passwordCommand.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.sftp.passwordCommand.hint}">...</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="sftpCommand" class="form-label" th:text="#{repository.form.sftp.command}">SFTP Command</label>
+                                <input type="text" class="form-control" id="sftpCommand" th:field="*{sftpCommand}"
+                                       th:placeholder="#{repository.form.sftp.command.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.sftp.command.hint}">...</div>
                             </div>
                         </fieldset>
 
@@ -167,5 +209,25 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        const typeSelect = document.getElementById('type');
+
+        function updateVisibility() {
+            const selected = typeSelect ? typeSelect.value.toLowerCase() : '';
+            document.querySelectorAll('[id^="config-"]').forEach(function (el) {
+                el.style.display = el.id === 'config-' + selected ? '' : 'none';
+            });
+            document.querySelectorAll('[id^="url-hint-"]').forEach(function (el) {
+                el.style.display = el.id === 'url-hint-' + selected ? '' : 'none';
+            });
+        }
+
+        if (typeSelect) {
+            typeSelect.addEventListener('change', updateVisibility);
+            updateVisibility();
+        }
+    })();
+</script>
 </body>
 </html>

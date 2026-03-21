@@ -10,7 +10,6 @@ import org.remus.resticexplorer.repository.RepositoryService;
 import org.remus.resticexplorer.repository.data.RepositoryGroup;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.scanning.CheckService;
-import org.remus.resticexplorer.scanning.RetentionPolicyChecker;
 import org.remus.resticexplorer.scanning.RetentionPolicyResult;
 import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.CheckResult;
@@ -18,19 +17,26 @@ import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.remus.resticexplorer.scanning.data.Snapshot;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Controller
@@ -41,7 +47,6 @@ public class DashboardController {
     private final ScanService scanService;
     private final CheckService checkService;
     private final GroupService groupService;
-    private final RetentionPolicyChecker retentionPolicyChecker;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/")

@@ -14,7 +14,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -54,6 +58,10 @@ public class RepositoryController {
         // On submit, blank means "keep existing value" (handled in save()).
         form.setS3AccessKey(repo.getProperty(RepositoryPropertyKey.S3_ACCESS_KEY));
         form.setS3Region(repo.getProperty(RepositoryPropertyKey.S3_REGION));
+        form.setAzureAccountName(repo.getProperty(RepositoryPropertyKey.AZURE_ACCOUNT_NAME));
+        form.setAzureEndpointSuffix(repo.getProperty(RepositoryPropertyKey.AZURE_ENDPOINT_SUFFIX));
+        form.setSftpPasswordCommand(repo.getProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND));
+        form.setSftpCommand(repo.getProperty(RepositoryPropertyKey.SFTP_COMMAND));
         form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
         form.setCheckIntervalMinutes(repo.getCheckIntervalMinutes());
         form.setEnabled(repo.isEnabled());
@@ -107,12 +115,21 @@ public class RepositoryController {
                     && RepositoryForm.isChanged(form.getS3SecretKey())) {
                 repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
             }
+            if (org.springframework.util.StringUtils.hasText(form.getAzureAccountKey())
+                    && RepositoryForm.isChanged(form.getAzureAccountKey())) {
+                repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_KEY, form.getAzureAccountKey());
+            }
         } else {
             repo.setRepositoryPassword(form.getRepositoryPassword());
             repo.setProperty(RepositoryPropertyKey.S3_SECRET_KEY, form.getS3SecretKey());
+            repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_KEY, form.getAzureAccountKey());
         }
         repo.setProperty(RepositoryPropertyKey.S3_ACCESS_KEY, form.getS3AccessKey());
         repo.setProperty(RepositoryPropertyKey.S3_REGION, form.getS3Region());
+        repo.setProperty(RepositoryPropertyKey.AZURE_ACCOUNT_NAME, form.getAzureAccountName());
+        repo.setProperty(RepositoryPropertyKey.AZURE_ENDPOINT_SUFFIX, form.getAzureEndpointSuffix());
+        repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, form.getSftpPasswordCommand());
+        repo.setProperty(RepositoryPropertyKey.SFTP_COMMAND, form.getSftpCommand());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setCheckIntervalMinutes(form.getCheckIntervalMinutes());
         repo.setEnabled(form.isEnabled());
