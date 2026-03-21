@@ -1,5 +1,6 @@
 package org.remus.resticexplorer.config;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.RepositoryType;
@@ -41,6 +42,7 @@ public class SchemaFixRunner implements ApplicationRunner {
     }
 
     @Override
+    @Transactional
     public void run(ApplicationArguments args) {
         if (!isPostgres()) {
             return;
@@ -99,8 +101,8 @@ public class SchemaFixRunner implements ApplicationRunner {
             log.info("Reconciled check constraint '{}' on {}.{} with values: {}",
                     constraint, table, column, allowedValues);
         } catch (Exception e) {
-            log.warn("Failed to reconcile check constraint '{}' on table '{}': {}",
-                    constraint, table, e.getMessage());
+            log.warn("Failed to reconcile check constraint '{}' on table '{}'",
+                    constraint, table, e);
         }
     }
 }
