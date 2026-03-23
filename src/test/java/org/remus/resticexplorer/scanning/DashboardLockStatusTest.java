@@ -25,6 +25,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -107,7 +108,8 @@ class DashboardLockStatusTest {
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("bi-lock-fill")));
+                .andExpect(content().string(containsString("bi-lock-fill")))
+                .andExpect(model().attributeExists("lockedRepoIds"));
     }
 
     @Test
@@ -137,7 +139,8 @@ class DashboardLockStatusTest {
 
         mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("bi-lock-fill")));
+                .andExpect(content().string(containsString("bi-lock-fill")))
+                .andExpect(model().attribute("hasLocks", true));
     }
 
     @Test

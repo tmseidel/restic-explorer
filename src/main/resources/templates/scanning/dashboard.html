@@ -128,7 +128,7 @@
                                               class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
                                         <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
                                               class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
-                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].lockCount != null && lastScanResults[repo.id].lockCount > 0}"
+                                        <span th:if="${lockedRepoIds.contains(repo.id)}"
                                               class="badge bg-warning text-dark ms-1">
                                             <i class="bi bi-lock-fill"></i> <span th:text="#{dashboard.locks}">Locked</span>
                                         </span>
@@ -162,7 +162,7 @@
                                                 <i class="bi bi-shield-check"></i>
                                             </button>
                                         </form>
-                                        <form th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].lockCount != null && lastScanResults[repo.id].lockCount > 0}"
+                                        <form th:if="${lockedRepoIds.contains(repo.id)}"
                                               th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">
@@ -230,7 +230,7 @@
                                               class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
                                         <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
                                               class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
-                                        <span th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].lockCount != null && lastScanResults[repo.id].lockCount > 0}"
+                                        <span th:if="${lockedRepoIds.contains(repo.id)}"
                                               class="badge bg-warning text-dark ms-1">
                                             <i class="bi bi-lock-fill"></i> <span th:text="#{dashboard.locks}">Locked</span>
                                         </span>
@@ -264,7 +264,7 @@
                                                 <i class="bi bi-shield-check"></i>
                                             </button>
                                         </form>
-                                        <form th:if="${lastScanResults[repo.id] != null && lastScanResults[repo.id].lockCount != null && lastScanResults[repo.id].lockCount > 0}"
+                                        <form th:if="${lockedRepoIds.contains(repo.id)}"
                                               th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">

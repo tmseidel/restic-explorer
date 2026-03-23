@@ -94,6 +94,13 @@ public class DashboardController {
         model.addAttribute("totalSnapshots", scanService.getTotalSnapshotCount());
         model.addAttribute("collapsedGroups", parseCollapsedGroups(request));
 
+        // Compute which repositories have locks
+        Set<Long> lockedRepoIds = lastScanResults.entrySet().stream()
+                .filter(e -> e.getValue().getLockCount() != null && e.getValue().getLockCount() > 0)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        model.addAttribute("lockedRepoIds", lockedRepoIds);
+
         // Calculate overall status from scan results
         String overallStatus = "none"; // no repos
         if (!repos.isEmpty()) {
@@ -137,6 +144,10 @@ public class DashboardController {
         // Retention policy result for snapshot page
         model.addAttribute("retentionResult", retentionResultFromScanResult(lastScan.orElse(null)));
         model.addAttribute("lastCheckResult", lastCheck.orElse(null));
+
+        // Lock status for snapshot page
+        boolean hasLocks = lastScan.map(s -> s.getLockCount() != null && s.getLockCount() > 0).orElse(false);
+        model.addAttribute("hasLocks", hasLocks);
         return "scanning/snapshots";
     }
 
