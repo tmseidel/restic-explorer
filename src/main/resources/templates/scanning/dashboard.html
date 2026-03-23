@@ -128,6 +128,10 @@
                                               class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
                                         <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
                                               class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
+                                        <span th:if="${lockedRepoIds.contains(repo.id)}"
+                                              class="badge bg-warning text-dark ms-1">
+                                            <i class="bi bi-lock-fill"></i> <span th:text="#{dashboard.locks}">Locked</span>
+                                        </span>
                                     </td>
                                     <td>
                                         <span th:if="${repo.checkIntervalMinutes == null || repo.checkIntervalMinutes == 0}" class="text-muted">—</span>
@@ -156,6 +160,14 @@
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-info" th:title="#{dashboard.checkNow}">
                                                 <i class="bi bi-shield-check"></i>
+                                            </button>
+                                        </form>
+                                        <form th:if="${lockedRepoIds.contains(repo.id)}"
+                                              th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')"
+                                              th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">
+                                                <i class="bi bi-unlock"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -219,6 +231,10 @@
                                               class="badge bg-info ms-1" th:text="#{dashboard.retention.ok}">Policy OK</span>
                                         <span th:if="${retentionResults[repo.id] != null && !retentionResults[repo.id].fulfilled}"
                                               class="badge bg-warning text-dark ms-1" th:text="#{dashboard.retention.warning}">Policy Warning</span>
+                                        <span th:if="${lockedRepoIds.contains(repo.id)}"
+                                              class="badge bg-warning text-dark ms-1">
+                                            <i class="bi bi-lock-fill"></i> <span th:text="#{dashboard.locks}">Locked</span>
+                                        </span>
                                     </td>
                                     <td>
                                         <span th:if="${repo.checkIntervalMinutes == null || repo.checkIntervalMinutes == 0}" class="text-muted">—</span>
@@ -247,6 +263,14 @@
                                               class="d-inline" sec:authorize="hasRole('ADMIN')">
                                             <button type="submit" class="btn btn-sm btn-outline-info" th:title="#{dashboard.checkNow}">
                                                 <i class="bi bi-shield-check"></i>
+                                            </button>
+                                        </form>
+                                        <form th:if="${lockedRepoIds.contains(repo.id)}"
+                                              th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')"
+                                              th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">
+                                                <i class="bi bi-unlock"></i>
                                             </button>
                                         </form>
                                     </td>
