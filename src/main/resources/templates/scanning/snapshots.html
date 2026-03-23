@@ -29,6 +29,13 @@
                     <i class="bi bi-shield-check"></i> <span th:text="#{snapshot.checkNow}">Check Now</span>
                 </button>
             </form>
+            <form th:if="${hasLocks}"
+                  th:action="@{/repositories/{id}/unlock(id=${repository.id})}" method="post" class="d-inline"
+                  th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-unlock"></i> <span th:text="#{snapshot.unlockNow}">Unlock</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -107,6 +114,15 @@
                     <span th:if="${lastCheckResult != null && lastCheckResult.status.name() == 'FAILED'}"
                           class="badge bg-danger" th:title="${lastCheckResult.message}" th:text="#{snapshot.repoInfo.checkStatus.failed}">Failed</span>
                     <span th:if="${lastCheckResult == null}" class="badge bg-secondary" th:text="#{snapshot.repoInfo.checkStatus.none}">No checks</span>
+                </div>
+                <div>
+                    <small class="text-muted d-block" th:text="#{snapshot.repoInfo.locks}">Locks</small>
+                    <span th:if="${hasLocks}"
+                          class="badge bg-warning text-dark">
+                        <i class="bi bi-lock-fill"></i> <span th:text="${lastScanResult.lockCount}">0</span>
+                    </span>
+                    <span th:if="${!hasLocks}"
+                          class="text-muted" th:text="#{snapshot.repoInfo.locks.none}">None</span>
                 </div>
             </div>
         </div>
