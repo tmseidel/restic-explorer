@@ -15,6 +15,7 @@ import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.remus.resticexplorer.scanning.data.Snapshot;
+import org.remus.resticexplorer.restic.ResticCommandService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,6 +48,7 @@ public class DashboardController {
     private final ScanService scanService;
     private final CheckService checkService;
     private final GroupService groupService;
+    private final ResticCommandService resticCommandService;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/")
@@ -167,6 +169,19 @@ public class DashboardController {
             checkService.checkRepository(id);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());
+        }
+        return "redirect:/repositories/" + id + "/snapshots";
+    }
+
+    @PostMapping("/repositories/{id}/unlock")
+    public String unlockRepository(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            ResticRepository repo = repositoryService.findById(id)
+                    .orElseThrow(() -> new RepositoryNotFoundException(id));
+            resticCommandService.unlockRepository(repo);
+            redirectAttributes.addFlashAttribute("successMessage", "message.unlockSuccess");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unlock failed: " + e.getMessage());
         }
         return "redirect:/repositories/" + id + "/snapshots";
     }

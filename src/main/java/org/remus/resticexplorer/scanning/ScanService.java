@@ -103,6 +103,15 @@ public class ScanService {
             scanResult.setSnapshotCount(snapshots.size());
             scanResult.setTotalSize(totalSize);
 
+            // Check for repository locks
+            try {
+                List<String> locks = resticCommandService.listLocks(repo);
+                scanResult.setLockCount(locks.size());
+            } catch (Exception e) {
+                log.warn("Failed to list locks for repository '{}': {}", repo.getName(), e.getMessage());
+                scanResult.setLockCount(null);
+            }
+
             // Check retention policy against the freshly saved snapshots
             List<Snapshot> savedSnapshots = snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);
             RetentionPolicyResult policyResult = retentionPolicyChecker.check(repo, savedSnapshots, LocalDate.now());
