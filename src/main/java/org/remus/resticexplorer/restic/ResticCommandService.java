@@ -69,7 +69,7 @@ public class ResticCommandService {
     }
 
     public Map<String, Object> getSnapshotStats(ResticRepository repository, String snapshotId) {
-        String output = executeCommand(repository, "stats", snapshotId, "--json");
+        String output = executeCommand(repository, "--no-lock", "stats", snapshotId, "--json");
         if (output == null || output.isBlank()) {
             return Collections.emptyMap();
         }
@@ -108,7 +108,6 @@ public class ResticCommandService {
         command.add(resticBinary);
         command.add("-r");
         command.add(repoUrl);
-        command.add("--no-lock");
         command.addAll(provider.buildExtraArguments(repository));
         command.add("--no-lock");
         command.add("dump");
@@ -136,7 +135,6 @@ public class ResticCommandService {
         command.add(resticBinary);
         command.add("-r");
         command.add(repoUrl);
-        command.add("--no-lock");
         command.addAll(provider.buildExtraArguments(repository));
         command.addAll(Arrays.asList(args));
 
