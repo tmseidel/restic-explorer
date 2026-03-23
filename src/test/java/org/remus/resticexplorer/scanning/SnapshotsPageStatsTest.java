@@ -126,4 +126,40 @@ class SnapshotsPageStatsTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\u2014"))); // em-dash fallback
     }
+
+    @Test
+    void snapshotsPageShowsGBForLargeSnapshots() throws Exception {
+        ResticRepository repo = createAndSaveRepo("GB Size Repo");
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setRepositoryId(repo.getId());
+        snapshot.setSnapshotId("gb1234");
+        snapshot.setHostname("test-host");
+        snapshot.setSnapshotTime(LocalDateTime.now());
+        snapshot.setTotalSize(5368709120L); // 5 GB
+        snapshotRepository.save(snapshot);
+
+        mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("5")))
+                .andExpect(content().string(containsString("GB")));
+    }
+
+    @Test
+    void snapshotsPageShowsTBForVeryLargeSnapshots() throws Exception {
+        ResticRepository repo = createAndSaveRepo("TB Size Repo");
+
+        Snapshot snapshot = new Snapshot();
+        snapshot.setRepositoryId(repo.getId());
+        snapshot.setSnapshotId("tb5678");
+        snapshot.setHostname("test-host");
+        snapshot.setSnapshotTime(LocalDateTime.now());
+        snapshot.setTotalSize(2199023255552L); // 2 TB
+        snapshotRepository.save(snapshot);
+
+        mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("2")))
+                .andExpect(content().string(containsString("TB")));
+    }
 }
