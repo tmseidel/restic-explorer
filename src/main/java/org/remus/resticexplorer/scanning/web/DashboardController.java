@@ -3,6 +3,7 @@ package org.remus.resticexplorer.scanning.web;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.FormatUtils;
 import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.config.exception.SnapshotNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
@@ -141,6 +142,20 @@ public class DashboardController {
         model.addAttribute("page", snapshotPage);
         model.addAttribute("lastScanResult", lastScan.orElse(null));
 
+        // Pre-formatted total repository size
+        model.addAttribute("formattedTotalSize",
+                lastScan.map(s -> FormatUtils.formatSize(s.getTotalSize())).orElse(null));
+
+        // Pre-formatted per-snapshot sizes (keyed by snapshotId)
+        Map<String, String> formattedSnapshotSizes = new HashMap<>();
+        for (Snapshot s : snapshotPage.getContent()) {
+            String formatted = FormatUtils.formatSize(s.getTotalSize());
+            if (formatted != null) {
+                formattedSnapshotSizes.put(s.getSnapshotId(), formatted);
+            }
+        }
+        model.addAttribute("formattedSnapshotSizes", formattedSnapshotSizes);
+
         // Retention policy result for snapshot page
         model.addAttribute("retentionResult", retentionResultFromScanResult(lastScan.orElse(null)));
         model.addAttribute("lastCheckResult", lastCheck.orElse(null));
@@ -160,6 +175,7 @@ public class DashboardController {
 
         model.addAttribute("repository", repo);
         model.addAttribute("snapshot", snapshot);
+        model.addAttribute("formattedSnapshotSize", FormatUtils.formatSize(snapshot.getTotalSize()));
         return "scanning/snapshot-detail";
     }
 

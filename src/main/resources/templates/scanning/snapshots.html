@@ -74,14 +74,9 @@
                     <small class="text-muted d-block" th:text="#{snapshot.repoInfo.snapshotCount}">Snapshots</small>
                     <span th:text="${lastScanResult.snapshotCount}">0</span>
                 </div>
-                <div th:if="${lastScanResult != null && lastScanResult.totalSize != null && lastScanResult.totalSize > 0}">
+                <div th:if="${formattedTotalSize != null}">
                     <small class="text-muted d-block" th:text="#{snapshot.repoInfo.totalSize}">Total Size</small>
-                    <span th:if="${lastScanResult.totalSize >= 1073741824000L}"
-                          th:text="${#numbers.formatDecimal(lastScanResult.totalSize / 1099511627776.0, 1, 'COMMA', 2, 'POINT') + ' TB'}">0 TB</span>
-                    <span th:if="${lastScanResult.totalSize >= 1048576000L and lastScanResult.totalSize < 1073741824000L}"
-                          th:text="${#numbers.formatDecimal(lastScanResult.totalSize / 1073741824.0, 1, 'COMMA', 2, 'POINT') + ' GB'}">0 GB</span>
-                    <span th:if="${lastScanResult.totalSize < 1048576000L}"
-                          th:text="${#numbers.formatDecimal(lastScanResult.totalSize / 1048576.0, 1, 'COMMA', 1, 'POINT') + ' MB'}">0 MB</span>
+                    <span th:text="${formattedTotalSize}">0 MB</span>
                 </div>
                 <div th:if="${lastScanResult != null && lastScanResult.totalFileCount != null && lastScanResult.totalFileCount > 0}">
                     <small class="text-muted d-block" th:text="#{snapshot.repoInfo.totalFileCount}">Total Files</small>
@@ -170,13 +165,9 @@
                                 <span th:if="${snapshot.tags != null}" th:each="tag : ${#strings.arraySplit(snapshot.tags, ',')}" class="badge bg-info me-1" th:text="${#strings.trim(tag)}">tag</span>
                             </td>
                             <td>
-                                <span th:if="${snapshot.totalSize != null and snapshot.totalSize >= 1073741824000L}"
-                                      th:text="${#numbers.formatDecimal(snapshot.totalSize / 1099511627776.0, 1, 'COMMA', 2, 'POINT') + ' TB'}">0 TB</span>
-                                <span th:if="${snapshot.totalSize != null and snapshot.totalSize >= 1048576000L and snapshot.totalSize < 1073741824000L}"
-                                      th:text="${#numbers.formatDecimal(snapshot.totalSize / 1073741824.0, 1, 'COMMA', 2, 'POINT') + ' GB'}">0 GB</span>
-                                <span th:if="${snapshot.totalSize != null and snapshot.totalSize < 1048576000L}"
-                                      th:text="${#numbers.formatDecimal(snapshot.totalSize / 1048576.0, 1, 'COMMA', 1, 'POINT') + ' MB'}">0 MB</span>
-                                <span th:if="${snapshot.totalSize == null}" class="text-muted">—</span>
+                                <span th:if="${formattedSnapshotSizes.containsKey(snapshot.snapshotId)}"
+                                      th:text="${formattedSnapshotSizes.get(snapshot.snapshotId)}">0 MB</span>
+                                <span th:if="${!formattedSnapshotSizes.containsKey(snapshot.snapshotId)}" class="text-muted">—</span>
                             </td>
                             <td sec:authorize="hasRole('ADMIN')">
                                 <a th:href="@{/download/{repoId}/{snapshotId}(repoId=${repository.id}, snapshotId=${snapshot.snapshotId})}"
