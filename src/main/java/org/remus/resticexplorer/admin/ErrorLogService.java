@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.remus.resticexplorer.admin.data.ErrorLogEntry;
 import org.remus.resticexplorer.admin.data.ErrorLogRepository;
+import org.remus.resticexplorer.config.exception.ResticCommandException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,12 @@ public class ErrorLogService {
                 : (cause != null ? cause.getMessage() : "Unknown error"));
         if (cause != null) {
             StringWriter sw = new StringWriter();
+            if (cause instanceof ResticCommandException rce
+                    && rce.getStderr() != null && !rce.getStderr().isBlank()) {
+                sw.write("stderr:\n");
+                sw.write(rce.getStderr());
+                sw.write("\n");
+            }
             cause.printStackTrace(new PrintWriter(sw));
             entry.setStackTrace(sw.toString());
         }

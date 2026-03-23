@@ -147,7 +147,7 @@ public class ResticCommandService {
                     message = "Restic command failed (exit code " + exitCode + ")";
                 }
 
-                throw new ResticCommandException(message);
+                throw new ResticCommandException(message, stderr);
             }
 
             return stdout;
