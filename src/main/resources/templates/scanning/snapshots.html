@@ -30,7 +30,8 @@
                 </button>
             </form>
             <form th:if="${hasLocks}"
-                  th:action="@{/repositories/{id}/unlock(id=${repository.id})}" method="post" class="d-inline">
+                  th:action="@{/repositories/{id}/unlock(id=${repository.id})}" method="post" class="d-inline"
+                  th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
                 <button type="submit" class="btn btn-warning">
                     <i class="bi bi-unlock"></i> <span th:text="#{snapshot.unlockNow}">Unlock</span>
                 </button>

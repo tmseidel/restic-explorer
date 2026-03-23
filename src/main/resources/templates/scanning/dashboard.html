@@ -164,7 +164,8 @@
                                         </form>
                                         <form th:if="${lockedRepoIds.contains(repo.id)}"
                                               th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
-                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')"
+                                              th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
                                             <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">
                                                 <i class="bi bi-unlock"></i>
                                             </button>
@@ -266,7 +267,8 @@
                                         </form>
                                         <form th:if="${lockedRepoIds.contains(repo.id)}"
                                               th:action="@{/repositories/{id}/unlock(id=${repo.id})}" method="post"
-                                              class="d-inline" sec:authorize="hasRole('ADMIN')">
+                                              class="d-inline" sec:authorize="hasRole('ADMIN')"
+                                              th:attr="onsubmit='return confirm(\'' + #{dashboard.unlockConfirm} + '\')'">
                                             <button type="submit" class="btn btn-sm btn-outline-warning" th:title="#{dashboard.unlockNow}">
                                                 <i class="bi bi-unlock"></i>
                                             </button>
