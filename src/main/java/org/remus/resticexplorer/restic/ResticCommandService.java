@@ -68,6 +68,19 @@ public class ResticCommandService {
         }
     }
 
+    public Map<String, Object> getSnapshotStats(ResticRepository repository, String snapshotId) {
+        String output = executeCommand(repository, "--no-lock", "stats", snapshotId, "--json");
+        if (output == null || output.isBlank()) {
+            return Collections.emptyMap();
+        }
+        try {
+            return objectMapper.readValue(output, new TypeReference<>() {});
+        } catch (Exception e) {
+            log.warn("Failed to parse stats for snapshot {}: {}", snapshotId, e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
     public String checkRepository(ResticRepository repository) {
         return executeCommand(repository, "--no-lock", "check", "--read-data");
     }
