@@ -49,6 +49,12 @@ public class ErrorLogService {
         return errorLogRepository.findByTimestampBetween(start, end, pageable);
     }
 
+    @Transactional
+    public void deleteAll() {
+        errorLogRepository.deleteAllInBatch();
+        log.info("All error log entries deleted by admin");
+    }
+
     // Runs daily at 03:00 to remove entries older than 12 months
     @Scheduled(cron = "0 0 3 * * *")
     @Transactional
