@@ -60,6 +60,8 @@ public class AdminController {
         return "redirect:/admin";
     }
 
+    private static final int MAX_PAGINATION_PAGES = 20;
+
     @GetMapping("/error-log")
     public String errorLog(Model model,
                            @RequestParam(required = false)
@@ -79,9 +81,25 @@ public class AdminController {
 
         Page<ErrorLogEntry> page = errorLogService.findErrors(start, end, pageable);
 
+        // Compute pagination window (max MAX_PAGINATION_PAGES visible page links)
+        int totalPages = page.getTotalPages();
+        int currentPage = page.getNumber();
+        int halfWindow = MAX_PAGINATION_PAGES / 2;
+        int paginationStart;
+        if (currentPage <= halfWindow) {
+            paginationStart = 0;
+        } else if (currentPage + halfWindow >= totalPages) {
+            paginationStart = Math.max(0, totalPages - MAX_PAGINATION_PAGES);
+        } else {
+            paginationStart = currentPage - halfWindow;
+        }
+        int paginationEnd = Math.min(paginationStart + MAX_PAGINATION_PAGES - 1, totalPages - 1);
+
         model.addAttribute("page", page);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
+        model.addAttribute("paginationStart", paginationStart);
+        model.addAttribute("paginationEnd", paginationEnd);
         return "admin/error-log";
     }
 

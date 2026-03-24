@@ -185,33 +185,29 @@
                 </small>
                 <ul class="pagination pagination-sm mb-0"
                     th:with="firstOrder=${page.sort.isSorted() ? page.sort.iterator().next() : null},
-                             sortStr=${firstOrder != null ? firstOrder.property + ',' + firstOrder.direction.name().toLowerCase() : ''},
-                             maxPages=20,
-                             halfWindow=${maxPages / 2},
-                             startPage=${page.number > halfWindow ? (page.number + halfWindow >= page.totalPages ? T(Math).max(0, page.totalPages - maxPages) : page.number - halfWindow) : 0},
-                             endPage=${T(Math).min(startPage + maxPages - 1, page.totalPages - 1)}">
+                             sortStr=${firstOrder != null ? firstOrder.property + ',' + firstOrder.direction.name().toLowerCase() : ''}">
                     <li class="page-item" th:classappend="${page.first} ? 'disabled'">
                         <a class="page-link"
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.number - 1},size=${page.size},sort=${sortStr})}"
                            th:text="#{pagination.previous}">Previous</a>
                     </li>
-                    <li th:if="${startPage > 0}" class="page-item">
+                    <li th:if="${paginationStart > 0}" class="page-item">
                         <a class="page-link"
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=0,size=${page.size},sort=${sortStr})}">1</a>
                     </li>
-                    <li th:if="${startPage > 1}" class="page-item disabled">
+                    <li th:if="${paginationStart > 1}" class="page-item disabled">
                         <span class="page-link">&hellip;</span>
                     </li>
-                    <li th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                    <li th:each="i : ${#numbers.sequence(paginationStart, paginationEnd)}"
                         class="page-item" th:classappend="${i == page.number} ? 'active'">
                         <a class="page-link"
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${i},size=${page.size},sort=${sortStr})}"
                            th:text="${i + 1}">1</a>
                     </li>
-                    <li th:if="${endPage < page.totalPages - 2}" class="page-item disabled">
+                    <li th:if="${paginationEnd < page.totalPages - 2}" class="page-item disabled">
                         <span class="page-link">&hellip;</span>
                     </li>
-                    <li th:if="${endPage < page.totalPages - 1}" class="page-item">
+                    <li th:if="${paginationEnd < page.totalPages - 1}" class="page-item">
                         <a class="page-link"
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.totalPages - 1},size=${page.size},sort=${sortStr})}"
                            th:text="${page.totalPages}">100</a>
