@@ -40,6 +40,10 @@ public class ScanResult {
 
     private Long totalSize;
 
+    private Long totalFileCount;
+  
+    private Integer lockCount;
+
     private Boolean retentionPolicyFulfilled;
 
     @Column(columnDefinition = "TEXT")

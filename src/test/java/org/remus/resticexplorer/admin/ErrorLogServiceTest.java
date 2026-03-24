@@ -3,6 +3,7 @@ package org.remus.resticexplorer.admin;
 import org.junit.jupiter.api.Test;
 import org.remus.resticexplorer.admin.data.ErrorLogEntry;
 import org.remus.resticexplorer.admin.data.ErrorLogRepository;
+import org.remus.resticexplorer.config.exception.ResticCommandException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -152,5 +154,61 @@ class ErrorLogServiceTest {
 
         assertEquals(1, errorLogRepository.count());
         assertEquals("recent", errorLogRepository.findAll().getFirst().getErrorMessage());
+    }
+
+    @Test
+    void testDeleteAllRemovesAllEntries() {
+        for (int i = 0; i < 3; i++) {
+            ErrorLogEntry entry = new ErrorLogEntry();
+            entry.setRepositoryId((long) i);
+            entry.setRepositoryName("Repo" + i);
+            entry.setAction("SCAN");
+            entry.setErrorMessage("error " + i);
+            entry.setTimestamp(LocalDateTime.now().minusHours(i));
+            errorLogRepository.save(entry);
+        }
+
+        assertEquals(3, errorLogRepository.count());
+
+        errorLogService.deleteAll();
+
+        assertEquals(0, errorLogRepository.count());
+    }
+
+    @Test
+    void testLogErrorWithResticCommandExceptionIncludesStderr() {
+        String stderrContent = "subprocess ssh: Permission denied, please try again.\n"
+                + "Fatal: unable to open repository at sftp:user@host:/repo\n";
+        ResticCommandException cause = new ResticCommandException(
+                "Restic command failed (exit code 1)", stderrContent);
+        errorLogService.logError(1L, "TestRepo", "SCAN", cause.getMessage(), cause);
+
+        List<ErrorLogEntry> entries = errorLogRepository.findAll();
+        assertEquals(1, entries.size());
+        ErrorLogEntry entry = entries.getFirst();
+        String stackTrace = entry.getStackTrace();
+        assertNotNull(stackTrace);
+        // Stderr should appear before the Java stack trace
+        assertTrue(stackTrace.startsWith("stderr:\n"));
+        assertTrue(stackTrace.contains("Permission denied"));
+        assertTrue(stackTrace.contains("Fatal: unable to open repository"));
+        // Java stack trace should still be present after the stderr
+        assertTrue(stackTrace.contains("ResticCommandException"));
+    }
+
+    @Test
+    void testLogErrorWithResticCommandExceptionWithoutStderr() {
+        ResticCommandException cause = new ResticCommandException(
+                "Restic command failed (exit code 1)");
+        errorLogService.logError(1L, "TestRepo", "SCAN", cause.getMessage(), cause);
+
+        List<ErrorLogEntry> entries = errorLogRepository.findAll();
+        assertEquals(1, entries.size());
+        ErrorLogEntry entry = entries.getFirst();
+        String stackTrace = entry.getStackTrace();
+        assertNotNull(stackTrace);
+        // No stderr prefix when stderr is null
+        assertFalse(stackTrace.startsWith("stderr:"));
+        assertTrue(stackTrace.contains("ResticCommandException"));
     }
 }

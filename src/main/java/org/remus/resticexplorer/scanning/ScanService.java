@@ -91,6 +91,20 @@ public class ScanService {
                 }
 
                 snapshot.setTreeHash((String) snapshotData.get("tree"));
+
+                // Fetch per-snapshot statistics
+                try {
+                    Map<String, Object> snapshotStats = resticCommandService.getSnapshotStats(repo, snapshot.getSnapshotId());
+                    if (snapshotStats.containsKey("total_size")) {
+                        snapshot.setTotalSize(((Number) snapshotStats.get("total_size")).longValue());
+                    }
+                    if (snapshotStats.containsKey("total_file_count")) {
+                        snapshot.setTotalFileCount(((Number) snapshotStats.get("total_file_count")).longValue());
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to get stats for snapshot '{}': {}", snapshot.getSnapshotId(), e.getMessage());
+                }
+
                 snapshotRepository.save(snapshot);
             }
 
@@ -98,10 +112,24 @@ public class ScanService {
             if (stats.containsKey("total_size")) {
                 totalSize = ((Number) stats.get("total_size")).longValue();
             }
+            long totalFileCount = 0;
+            if (stats.containsKey("total_file_count")) {
+                totalFileCount = ((Number) stats.get("total_file_count")).longValue();
+            }
 
             scanResult.setStatus(ScanResult.ScanStatus.SUCCESS);
             scanResult.setSnapshotCount(snapshots.size());
             scanResult.setTotalSize(totalSize);
+            scanResult.setTotalFileCount(totalFileCount);
+
+            // Check for repository locks
+            try {
+                List<String> locks = resticCommandService.listLocks(repo);
+                scanResult.setLockCount(locks.size());
+            } catch (Exception e) {
+                log.warn("Failed to list locks for repository '{}': {}", repo.getName(), e.getMessage());
+                scanResult.setLockCount(null);
+            }
 
             // Check retention policy against the freshly saved snapshots
             List<Snapshot> savedSnapshots = snapshotRepository.findByRepositoryIdOrderBySnapshotTimeDesc(repositoryId);

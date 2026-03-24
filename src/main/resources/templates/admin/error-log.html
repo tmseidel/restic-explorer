@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 >
 <head th:replace="~{fragments/layout :: head('Error Log')}"><title>Error Log</title></head>
 <body class="d-flex flex-column min-vh-100">
@@ -15,6 +16,13 @@
     </nav>
 
     <h2><i class="bi bi-exclamation-triangle"></i> <span th:text="#{admin.errorLog.title}">Error Log</span></h2>
+
+    <!-- Success message -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i>
+        <span th:text="#{${successMessage}}">Success</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
     <!-- Auto-deletion notice -->
     <div class="alert alert-info">
@@ -53,8 +61,18 @@
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span><i class="bi bi-list-ul"></i> <span th:text="#{admin.errorLog.entries}">Entries</span></span>
-            <small class="text-muted"
-                   th:text="${page.totalElements} + ' ' + #{admin.errorLog.total}">0 total</small>
+            <div class="d-flex align-items-center gap-3">
+                <small class="text-muted"
+                       th:text="${page.totalElements} + ' ' + #{admin.errorLog.total}">0 total</small>
+                <form sec:authorize="hasRole('ADMIN')" th:if="${page.totalElements > 0}"
+                      method="post" th:action="@{/admin/error-log/delete-all}" class="d-inline"
+                      onsubmit="return confirm(this.dataset.confirmMsg);"
+                      th:attr="data-confirm-msg=#{admin.errorLog.deleteAll.confirm}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> <span th:text="#{admin.errorLog.deleteAll}">Delete All</span>
+                    </button>
+                </form>
+            </div>
         </div>
         <div class="card-body p-0">
             <div th:if="${page.totalElements == 0}" class="p-4 text-center text-muted">
@@ -113,7 +131,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="entry, iterStat : ${page.content}">
+                        <th:block th:each="entry, iterStat : ${page.content}">
+                        <tr>
                             <td class="text-nowrap">
                                 <span th:text="${#temporals.format(entry.timestamp, 'yyyy-MM-dd HH:mm:ss')}">-</span>
                             </td>
@@ -131,10 +150,9 @@
                             </td>
                             <td>
                                 <button th:if="${entry.stackTrace != null}"
-                                        class="btn btn-sm btn-outline-secondary"
+                                        class="btn btn-sm btn-outline-secondary stacktrace-toggle"
                                         type="button"
-                                        data-bs-toggle="collapse"
-                                        th:attr="data-bs-target='#trace-' + ${iterStat.index}"
+                                        th:attr="data-trace-target='trace-' + ${iterStat.index}"
                                         th:title="#{admin.errorLog.showDetails}">
                                     <i class="bi bi-chevron-down"></i>
                                     <span th:text="#{admin.errorLog.showDetails}">Details</span>
@@ -142,14 +160,15 @@
                                 <span th:if="${entry.stackTrace == null}" class="text-muted">-</span>
                             </td>
                         </tr>
-                        <!-- Expandable stacktrace rows -->
-                        <tr th:each="entry, iterStat : ${page.content}" th:if="${entry.stackTrace != null}"
-                            class="collapse" th:id="'trace-' + ${iterStat.index}">
+                        <!-- Expandable stacktrace row directly under its data row -->
+                        <tr th:if="${entry.stackTrace != null}"
+                            class="collapse stacktrace-row" th:id="'trace-' + ${iterStat.index}">
                             <td colspan="5" class="bg-body-tertiary">
                                 <pre class="mb-0 small text-break" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;"
                                      th:text="${entry.stackTrace}"></pre>
                             </td>
                         </tr>
+                        </th:block>
                     </tbody>
                 </table>
             </div>
@@ -172,11 +191,26 @@
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.number - 1},size=${page.size},sort=${sortStr})}"
                            th:text="#{pagination.previous}">Previous</a>
                     </li>
-                    <li th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                    <li th:if="${paginationStart > 0}" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=0,size=${page.size},sort=${sortStr})}">1</a>
+                    </li>
+                    <li th:if="${paginationStart > 1}" class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                    <li th:each="i : ${#numbers.sequence(paginationStart, paginationEnd)}"
                         class="page-item" th:classappend="${i == page.number} ? 'active'">
                         <a class="page-link"
                            th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${i},size=${page.size},sort=${sortStr})}"
                            th:text="${i + 1}">1</a>
+                    </li>
+                    <li th:if="${paginationEnd < page.totalPages - 2}" class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                    <li th:if="${paginationEnd < page.totalPages - 1}" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/admin/error-log(startDate=${startDate},endDate=${endDate},page=${page.totalPages - 1},size=${page.size},sort=${sortStr})}"
+                           th:text="${page.totalPages}">100</a>
                     </li>
                     <li class="page-item" th:classappend="${page.last} ? 'disabled'">
                         <a class="page-link"
@@ -191,5 +225,29 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Stacktrace accordion: only one open at a time
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.stacktrace-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var targetId = this.getAttribute('data-trace-target');
+                var targetRow = document.getElementById(targetId);
+                if (!targetRow) return;
+
+                var isCurrentlyShown = targetRow.classList.contains('show');
+
+                // Collapse all open stacktrace rows
+                document.querySelectorAll('.stacktrace-row.show').forEach(function (row) {
+                    bootstrap.Collapse.getOrCreateInstance(row).hide();
+                });
+
+                // If the clicked one was not open, open it
+                if (!isCurrentlyShown) {
+                    bootstrap.Collapse.getOrCreateInstance(targetRow).show();
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

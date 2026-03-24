@@ -3,6 +3,7 @@ package org.remus.resticexplorer.scanning.web;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.remus.resticexplorer.config.FormatUtils;
 import org.remus.resticexplorer.config.exception.RepositoryNotFoundException;
 import org.remus.resticexplorer.config.exception.SnapshotNotFoundException;
 import org.remus.resticexplorer.repository.GroupService;
@@ -15,6 +16,7 @@ import org.remus.resticexplorer.scanning.ScanService;
 import org.remus.resticexplorer.scanning.data.CheckResult;
 import org.remus.resticexplorer.scanning.data.ScanResult;
 import org.remus.resticexplorer.scanning.data.Snapshot;
+import org.remus.resticexplorer.restic.ResticCommandService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -47,6 +49,7 @@ public class DashboardController {
     private final ScanService scanService;
     private final CheckService checkService;
     private final GroupService groupService;
+    private final ResticCommandService resticCommandService;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/")
@@ -92,6 +95,13 @@ public class DashboardController {
         model.addAttribute("totalSnapshots", scanService.getTotalSnapshotCount());
         model.addAttribute("collapsedGroups", parseCollapsedGroups(request));
 
+        // Compute which repositories have locks
+        Set<Long> lockedRepoIds = lastScanResults.entrySet().stream()
+                .filter(e -> e.getValue().getLockCount() != null && e.getValue().getLockCount() > 0)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+        model.addAttribute("lockedRepoIds", lockedRepoIds);
+
         // Calculate overall status from scan results
         String overallStatus = "none"; // no repos
         if (!repos.isEmpty()) {
@@ -132,9 +142,27 @@ public class DashboardController {
         model.addAttribute("page", snapshotPage);
         model.addAttribute("lastScanResult", lastScan.orElse(null));
 
+        // Pre-formatted total repository size
+        model.addAttribute("formattedTotalSize",
+                lastScan.map(s -> FormatUtils.formatSize(s.getTotalSize())).orElse(null));
+
+        // Pre-formatted per-snapshot sizes (keyed by snapshotId)
+        Map<String, String> formattedSnapshotSizes = new HashMap<>();
+        for (Snapshot s : snapshotPage.getContent()) {
+            String formatted = FormatUtils.formatSize(s.getTotalSize());
+            if (formatted != null) {
+                formattedSnapshotSizes.put(s.getSnapshotId(), formatted);
+            }
+        }
+        model.addAttribute("formattedSnapshotSizes", formattedSnapshotSizes);
+
         // Retention policy result for snapshot page
         model.addAttribute("retentionResult", retentionResultFromScanResult(lastScan.orElse(null)));
         model.addAttribute("lastCheckResult", lastCheck.orElse(null));
+
+        // Lock status for snapshot page
+        boolean hasLocks = lastScan.map(s -> s.getLockCount() != null && s.getLockCount() > 0).orElse(false);
+        model.addAttribute("hasLocks", hasLocks);
         return "scanning/snapshots";
     }
 
@@ -147,6 +175,7 @@ public class DashboardController {
 
         model.addAttribute("repository", repo);
         model.addAttribute("snapshot", snapshot);
+        model.addAttribute("formattedSnapshotSize", FormatUtils.formatSize(snapshot.getTotalSize()));
         return "scanning/snapshot-detail";
     }
 
@@ -167,6 +196,19 @@ public class DashboardController {
             checkService.checkRepository(id);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Integrity check failed: " + e.getMessage());
+        }
+        return "redirect:/repositories/" + id + "/snapshots";
+    }
+
+    @PostMapping("/repositories/{id}/unlock")
+    public String unlockRepository(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            ResticRepository repo = repositoryService.findById(id)
+                    .orElseThrow(() -> new RepositoryNotFoundException(id));
+            resticCommandService.unlockRepository(repo);
+            redirectAttributes.addFlashAttribute("successMessage", "message.unlockSuccess");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unlock failed: " + e.getMessage());
         }
         return "redirect:/repositories/" + id + "/snapshots";
     }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -44,7 +45,7 @@ public class ResticCommandService {
     }
 
     public List<Map<String, Object>> listSnapshots(ResticRepository repository) {
-        String output = executeCommand(repository, "snapshots", "--json");
+        String output = executeCommand(repository, "--no-lock", "snapshots", "--json");
         if (output == null || output.isBlank()) {
             return Collections.emptyList();
         }
@@ -56,7 +57,7 @@ public class ResticCommandService {
     }
 
     public Map<String, Object> getStats(ResticRepository repository) {
-        String output = executeCommand(repository, "stats", "--json");
+        String output = executeCommand(repository, "--no-lock", "stats", "--json");
         if (output == null || output.isBlank()) {
             return Collections.emptyMap();
         }
@@ -67,8 +68,35 @@ public class ResticCommandService {
         }
     }
 
+    public Map<String, Object> getSnapshotStats(ResticRepository repository, String snapshotId) {
+        String output = executeCommand(repository, "--no-lock", "stats", snapshotId, "--json");
+        if (output == null || output.isBlank()) {
+            return Collections.emptyMap();
+        }
+        try {
+            return objectMapper.readValue(output, new TypeReference<>() {});
+        } catch (Exception e) {
+            log.warn("Failed to parse stats for snapshot {}: {}", snapshotId, e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
     public String checkRepository(ResticRepository repository) {
-        return executeCommand(repository, "check", "--read-data");
+        return executeCommand(repository, "--no-lock", "check", "--read-data");
+    }
+
+    public List<String> listLocks(ResticRepository repository) {
+        String output = executeCommand(repository, "--no-lock", "list", "locks");
+        if (output == null || output.isBlank()) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(output.trim().split("\n"))
+                .filter(line -> !line.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    public String unlockRepository(ResticRepository repository) {
+        return executeCommand(repository, "unlock");
     }
 
     public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) {
@@ -81,6 +109,7 @@ public class ResticCommandService {
         command.add("-r");
         command.add(repoUrl);
         command.addAll(provider.buildExtraArguments(repository));
+        command.add("--no-lock");
         command.add("dump");
         command.add(snapshotId);
         command.add("/");
@@ -147,7 +176,7 @@ public class ResticCommandService {
                     message = "Restic command failed (exit code " + exitCode + ")";
                 }
 
-                throw new ResticCommandException(message);
+                throw new ResticCommandException(message, stderr);
             }
 
             return stdout;
