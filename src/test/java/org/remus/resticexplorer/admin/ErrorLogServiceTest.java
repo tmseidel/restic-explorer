@@ -157,6 +157,25 @@ class ErrorLogServiceTest {
     }
 
     @Test
+    void testDeleteAllRemovesAllEntries() {
+        for (int i = 0; i < 3; i++) {
+            ErrorLogEntry entry = new ErrorLogEntry();
+            entry.setRepositoryId((long) i);
+            entry.setRepositoryName("Repo" + i);
+            entry.setAction("SCAN");
+            entry.setErrorMessage("error " + i);
+            entry.setTimestamp(LocalDateTime.now().minusHours(i));
+            errorLogRepository.save(entry);
+        }
+
+        assertEquals(3, errorLogRepository.count());
+
+        errorLogService.deleteAll();
+
+        assertEquals(0, errorLogRepository.count());
+    }
+
+    @Test
     void testLogErrorWithResticCommandExceptionIncludesStderr() {
         String stderrContent = "subprocess ssh: Permission denied, please try again.\n"
                 + "Fatal: unable to open repository at sftp:user@host:/repo\n";

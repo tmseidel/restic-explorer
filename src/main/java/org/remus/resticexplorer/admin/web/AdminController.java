@@ -84,4 +84,11 @@ public class AdminController {
         model.addAttribute("endDate", endDate);
         return "admin/error-log";
     }
+
+    @PostMapping("/error-log/delete-all")
+    public String deleteAllErrorLogs(RedirectAttributes redirectAttributes) {
+        errorLogService.deleteAll();
+        redirectAttributes.addFlashAttribute("successMessage", "admin.errorLog.deleteAll.success");
+        return "redirect:/admin/error-log";
+    }
 }
