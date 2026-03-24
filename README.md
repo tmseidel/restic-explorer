@@ -2,32 +2,33 @@
 
 ![Restic Explorer Logo](src/main/resources/static/images/logo.svg)
 
-A web-based dashboard for managing and exploring [restic](https://restic.net/) backup repositories. Built with Spring Boot, Thymeleaf, and Bootstrap 5.
+A web-based dashboard for monitoring and exploring [restic](https://restic.net/) backup repositories. Built with Spring Boot 4, Thymeleaf, and Bootstrap 5.
 
 ## Features
 
-- **Repository Management** – CRUD operations for restic backup repositories (S3, Azure Blob Storage, and SFTP supported; extensible architecture for additional backends)
-- **Automated Scanning** – Configurable scheduled scans to cache restic metadata
-- **Integrity Checks** – Scheduled restic consistency and integrity verification (`restic check`) with configurable intervals per repository
-- **Dashboard** – Overview of all repositories, snapshot counts, scan and integrity check status
-- **Snapshot Browser** – View all snapshots with details (hostname, paths, tags, timestamps)
-- **Snapshot Download** – Admin-only download of specific snapshots as tar archives
-- **Single Admin Account** – Simple authentication with password setup on first launch
-- **Encrypted Sensitive Data** – Repository passwords and backend credentials encrypted at rest using AES-256-GCM
-- **Health Monitoring** – Spring Actuator endpoint reporting restic metadata cache and integrity check status
-- **Internationalization** – All UI text externalized via message bundles; add new languages by adding `messages_xx.properties`
-- **Responsive UI** – Modern, mobile-friendly design using Bootstrap 5 and Thymeleaf
+- **Multi-Repository Dashboard** – Monitor S3, Azure Blob Storage, and SFTP restic repositories in one place with grouping, status badges, and lock warnings
+- **Automated Scanning & Integrity Checks** – Configurable scheduled scans and `restic check --read-data` per repository
+- **Snapshot Browser & Detail View** – Paginated, sortable snapshot list with dedicated detail pages (paths, tags, size, file count)
+- **Retention Policies** – Advisory backup-frequency rules (daily/weekly/monthly/yearly/last); violations shown as amber warnings
+- **Error Log** – Persistent log of scan/check failures with date filtering, pagination, and auto-cleanup
+- **Health Endpoint** – Spring Actuator at `/actuator/health` reporting per-repo scan, check, and retention status
+- **Encrypted Credentials** – AES-256-GCM encryption at rest for repository passwords and backend keys
+- **Admin-Only Actions** – Snapshot download, repository CRUD, unlock, setup wizard with single admin account
+- **Dark Mode & Responsive UI** – Bootstrap 5.3 with automatic light/dark theme switching
 
 ## Screenshots
+
 ### Dashboard
-The dashboard provides a high-level overview of all configured repositories, including the total number of snapshots and the status of the last scan (OK, Failed, Pending). Admins can quickly navigate to the snapshot browser or trigger a manual scan.
+The dashboard provides a high-level overview of all configured repositories grouped by category, including snapshot counts, scan/check status badges, retention policy status, and lock warnings.
 ![Dashboard](docs/screenshot_dashboard.png)
+
 ### Snapshot Browser
-The snapshot browser lists all cached snapshots for a selected repository, showing key details such as snapshot ID, timestamp, hostname, paths, and tags. Admins can trigger a re-scan or download specific snapshots directly from this interface.
+The snapshot browser lists cached snapshots with paginated, sortable columns. Click any snapshot to open its detail page.
 ![Snapshots](docs/screenshot_snapshots.png)
+
 ### Snapshot Details
-Clicking on a snapshot opens a detailed view with all metadata and a download option (admin only) for that snapshot.
-![Snapshots-Details](docs/screenshot_snapshot.png)
+The detail page shows full snapshot metadata including all paths, tags, size, file count, and a download option for admins.
+![Snapshot Detail](docs/screenshot_snapshot.png)
 
 ## Quick Start
 
@@ -40,11 +41,8 @@ Clicking on a snapshot opens a detailed view with all metadata and a download op
 ### Run Locally
 
 ```bash
-# Clone the repository
 git clone https://github.com/tmseidel/restic-explorer.git
 cd restic-explorer
-
-# Build and run
 mvn spring-boot:run
 ```
 
@@ -53,17 +51,12 @@ The application starts on [http://localhost:8080](http://localhost:8080). On fir
 ### Run with Docker
 
 ```bash
-# Build and start with Docker Compose (includes PostgreSQL)
 docker compose up --build -d
 ```
 
-The application will be available at [http://localhost:8080](http://localhost:8080).
-
 ### Run with Docker Hub Image
 
-A pre-built image is available on Docker Hub at [`tmseidel/restic-explorer`](https://hub.docker.com/r/tmseidel/restic-explorer).
-
-Create a `docker-compose.yml`:
+A pre-built image is available at [`tmseidel/restic-explorer`](https://hub.docker.com/r/tmseidel/restic-explorer).
 
 ```yaml
 services:
@@ -106,8 +99,6 @@ volumes:
   db-data:
 ```
 
-Then start it:
-
 ```bash
 docker compose up -d
 ```
@@ -129,166 +120,140 @@ On first launch, you are redirected to the **Setup** page:
 2. Navigate to **Repositories** → **Add Repository**
 3. Fill in the form:
    - **Name**: A friendly display name
-   - **Enabled**: Toggle to enable or disable the repository. When disabled, automatic scanning and integrity checks are paused.
-   - **Group**: Optionally assign the repository to a group for organizing the dashboard
+   - **Enabled**: Toggle scanning and integrity checks on/off
+   - **Group**: Optionally assign to a group for dashboard organization
    - **Repository Type**: Select the backend type (see [Supported Repository Connectors](#supported-repository-connectors))
-   - **Repository URL**: The restic repository URL (format depends on the backend type)
+   - **Repository URL**: The restic repository URL (format depends on backend type)
    - **Repository Password**: The encryption password for the restic repository
-   - **Backend-specific settings**: Depending on the selected type (S3 credentials, Azure account details, or SFTP command options)
-   - **Retention Policy** *(optional)*: Define expected backup frequency (see [Retention Policies](#9-retention-policies))
-   - **Comment**: Optional notes or description for the repository
-   - **Scan Interval**: How often (in minutes) to automatically scan for new snapshots
-   - **Check Interval**: How often (in minutes) to run `restic check` for integrity verification (set to `0` to disable)
+   - **Backend-specific settings**: Depending on the selected type (S3 credentials, Azure account details, or SFTP options)
+   - **Retention Policy** *(optional)*: Define expected backup frequency (see [Retention Policies](#11-retention-policies))
+   - **Comment**: Optional notes or description
+   - **Scan Interval**: How often (in minutes) to scan for new snapshots
+   - **Check Interval**: How often (in minutes) to run `restic check` (set to `0` to disable)
 4. Click **Save**
+
+> **Note**: When editing a repository, sensitive fields (passwords, keys) are preserved if left unchanged — you only need to re-enter them if you want to change the value.
 
 ### Supported Repository Connectors
 
 | Connector | Repository Type | URL Format | Additional Settings |
 |---|---|---|---|
-| **Amazon S3 / S3-Compatible** | `S3` | `s3:https://s3.amazonaws.com/bucket/path` or `s3:https://custom-endpoint/bucket/path` | Access Key, Secret Key, Region |
+| **Amazon S3 / S3-Compatible** | `S3` | `s3:https://s3.amazonaws.com/bucket/path` | Access Key, Secret Key, Region |
 | **Microsoft Azure Blob Storage** | `AZURE` | `azure:container-name:/path` | Account Name, Account Key, Endpoint Suffix |
-| **SFTP** | `SFTP` | `sftp:user@host:/path/to/repo` or `sftp://user@host:port//path/to/repo` | Password Command (optional), SFTP Command (optional) |
+| **SFTP** | `SFTP` | `sftp:user@host:/path/to/repo` | Password Command (optional), SFTP Command (optional) |
 
 #### SFTP Connector Details
 
-The SFTP connector allows browsing restic repositories stored on remote servers accessible via SSH/SFTP.
+The SFTP connector supports restic repositories on remote servers accessible via SSH/SFTP. Authentication is **key-based only** (no SSH password storage).
 
-- **Repository URL**: Use the standard restic SFTP URL format, e.g. `sftp:user@host:/srv/restic-repo`
-- **Password Command** *(optional)*: A shell command that prints the repository password to stdout (e.g. `cat /path/to/password-file`). When set, this takes precedence over the Repository Password field.
-- **SFTP Command** *(optional)*: A custom SSH command used for the SFTP connection. Use this to specify a private key for key-based authentication, e.g. `ssh user@host -i /root/.ssh/id_rsa -s sftp`.
+- **Repository URL**: Standard restic SFTP URL, e.g. `sftp:user@host:/srv/restic-repo`
+- **Password Command** *(optional)*: Shell command printing the *repository* password to stdout (e.g. `cat /path/to/password-file`)
+- **SFTP Command** *(optional)*: Custom SSH command for the SFTP connection, e.g. `ssh user@host -i /root/.ssh/id_rsa -s sftp`
 
 #### Mounting SSH Private Keys in Docker
 
-When using the SFTP connector in a Docker deployment, the container needs access to the SSH private key file on the host machine. Mount the key file (or the `.ssh` directory) into the container:
-
-**Docker Compose** — add a bind-mount volume to the `app` service in `docker-compose.yml`:
+Mount the private key file into the container:
 
 ```yaml
 services:
   app:
     image: tmseidel/restic-explorer:latest
-    # ... other settings ...
     volumes:
       - app-data:/app/data
       - /home/youruser/.ssh/id_rsa:/app/ssh/id_rsa:ro
 ```
 
-**Docker Run** — use the `-v` flag:
+Then set the **SFTP Command** to: `ssh user@host -i /app/ssh/id_rsa -s sftp`
 
-```bash
-docker run -d \
-  -p 8080:8080 \
-  -v /home/youruser/.ssh/id_rsa:/app/ssh/id_rsa:ro \
-  tmseidel/restic-explorer:latest
-```
+> ⚠️ Mount the key as read-only (`:ro`). The Docker image runs as UID 1000, so ensure the key file is readable by that user (`chmod 600`).
 
-Then, in the SFTP repository configuration, set the **SFTP Command** to reference the mounted key path inside the container:
-
-```
-ssh user@host -i /app/ssh/id_rsa -s sftp
-```
-
-> ⚠️ **Tip**: Mount the key as read-only (`:ro`) for security. Ensure the file permissions on the host key are restrictive (`chmod 600`).
+See [docs/SYSTEMTEST_SFTP.md](docs/SYSTEMTEST_SFTP.md) for a full SFTP testing tutorial.
 
 ### 3. Dashboard
 
 The dashboard shows:
-- Total number of repositories and snapshots
-- Per-repository scan status (OK, Failed, Pending)
-- Per-repository integrity check status (OK, Failed, Pending, or disabled)
-- Quick actions to view snapshots, trigger a manual scan, or run an integrity check
+- Summary cards: total repositories, total snapshots, overall status
+- Per-repository: scan status, integrity check status, retention policy status, lock warnings
+- Repository groups with collapsible sections (collapse state saved in browser cookie)
+- Quick actions: view snapshots, trigger scan, run integrity check, unlock
 
 ### 4. Browsing Snapshots
 
-Click on a repository name or the eye icon to see all cached snapshots:
-- Snapshot ID, timestamp, hostname, paths, and tags
-- Admins can trigger a re-scan, run an integrity check, or download a snapshot
+Click on a repository name or the eye icon to see cached snapshots:
+- **Paginated list** (25 per page) with sortable columns (time, hostname, snapshot ID, size)
+- Click any snapshot row to open the **Snapshot Detail Page**
 
-### 5. Downloading Snapshots
+### 5. Snapshot Detail Page
 
-> **Admin only**: Only logged-in admins can download snapshots.
+The detail page for a single snapshot shows:
+- Snapshot ID, timestamp, hostname, username, tree hash
+- Total size and file count
+- Full paths list (one per line, not comma-separated)
+- Tags as badges
+- Admin-only download button
 
-Click the download icon next to any snapshot to download it as a `.tar` archive via `restic dump`.
+### 6. Downloading Snapshots
 
-### 6. Administration
+> **Admin only**: Click the download button on the snapshot detail page to get a `.tar` archive via `restic dump`.
+
+### 7. Lock Detection & Unlock
+
+During each scan, Restic Explorer checks for stale locks on the repository:
+- A lock warning badge appears on the dashboard and snapshot page if locks are detected
+- Admins can click **Unlock** to run `restic unlock` and release stale locks
+
+### 8. Administration
 
 Navigate to **Admin** to:
 - Change the admin password
-- View system information and actuator health link
+- View application version
+- Access the **Error Log** (browse scan/check failures with date range filtering and pagination)
+- Clear all error log entries
 
-### 7. Health & Monitoring
-
-The application exposes Spring Actuator endpoints:
+### 9. Health & Monitoring
 
 | Endpoint | Description |
 |---|---|
-| `GET /actuator/health` | Application health including restic metadata status |
-| `GET /actuator/info` | Application information |
+| `GET /actuator/health` | Application health including per-repo scan, check, and retention status |
+| `GET /actuator/info` | Application name and version (from Maven build) |
 | `GET /actuator/metrics` | Application metrics |
 
 The custom `resticMetadata` health indicator reports:
 - Total repositories and cached snapshots
-- Per-repository scan status and last scan time
-- Per-repository integrity check status and last check time
-- Per-repository retention policy status and violations (when a policy is configured)
-- Overall status: UP (all scans and checks successful), DOWN (any scan or check failed), UNKNOWN (no repositories)
+- Per-repository scan status, check status, retention policy status
+- Overall status: `UP` (all OK), `DOWN` (any failure), `UNKNOWN` (no repos)
 
-### 8. Integrity Checks
+### 10. Integrity Checks
 
-Restic Explorer can periodically run `restic check --read-data` to verify the consistency and integrity of your backup repositories.
+Restic Explorer can periodically run `restic check --read-data` to verify repository integrity.
 
-#### Configuration
+- Set **Check Interval** to a non-zero value (minutes) to enable; `0` to disable
+- Admins can trigger checks manually from the dashboard or snapshot page
+- Status badges: OK, Failed, Pending, Disabled
 
-- When adding or editing a repository, set the **Check Interval** field to a non-zero value (in minutes) to enable scheduled integrity checks.
-- Set it to `0` to disable automatic integrity checks for that repository.
+> ⚠️ `restic check --read-data` reads **all data** in the repository. Choose the interval accordingly for large repositories.
 
-#### Manual Trigger
+### 11. Retention Policies
 
-Admins can trigger an integrity check at any time from the **Dashboard** or the **Snapshots** page by clicking the **Check Now** button.
-
-#### Status Reporting
-
-- **Dashboard**: Each repository shows an integrity check status badge (OK, Failed, Pending, or Disabled) alongside the scan status.
-- **Snapshots page**: The repository info section displays the last check time and result.
-- **Health endpoint**: `GET /actuator/health` includes per-repository integrity check status and last check time.
-
-> ⚠️ `restic check --read-data` reads **all data** in the repository, which can take a long time and generate significant network traffic for large repositories. Choose the check interval accordingly.
-
-### 9. Retention Policies
-
-Each repository can optionally have a **retention policy** that defines expected backup frequency. The policy is purely advisory — it never deletes snapshots.
-
-#### Configuration
-
-When adding or editing a repository, fill in the optional **Retention Policy** fields:
+Each repository can have an optional **retention policy** defining expected backup frequency. Policies are purely advisory — they **never delete** snapshots.
 
 | Field | Meaning |
 |---|---|
-| **Keep Daily** | Number of days in the recent past that must each have at least one snapshot |
-| **Keep Weekly** | Number of weeks in the recent past that must each have at least one snapshot |
-| **Keep Monthly** | Number of months in the recent past that must each have at least one snapshot |
-| **Keep Yearly** | Number of years in the recent past that must each have at least one snapshot |
-| **Keep Last** | Minimum total number of snapshots that must exist |
+| **Keep Daily** | Number of recent days that must each have ≥1 snapshot |
+| **Keep Weekly** | Number of recent weeks that must each have ≥1 snapshot |
+| **Keep Monthly** | Number of recent months that must each have ≥1 snapshot |
+| **Keep Yearly** | Number of recent years that must each have ≥1 snapshot |
+| **Keep Last** | Minimum total number of snapshots |
 
-Leave all fields empty (or set to `0`) to disable the retention policy for a repository.
+Leave all fields empty or `0` to disable. After each scan, violations appear as amber warnings on the dashboard and snapshot page. Violations do **not** affect the overall health status.
 
-#### Semantics
+### 12. Error Log
 
-- `keepDaily = 7` → There must be at least one snapshot for each of the last 7 days (today through 6 days ago).
-- `keepWeekly = 4` → There must be at least one snapshot in each of the last 4 calendar weeks.
-- `keepMonthly = 12` → At least one snapshot in each of the last 12 calendar months.
-- `keepYearly = 2` → At least one snapshot in each of the last 2 calendar years.
-- `keepLast = 10` → There must be at least 10 snapshots total.
-- Fields set to `null` or `0` are **skipped** (not checked).
-
-#### How Violations Are Surfaced
-
-After each scan, the system evaluates the cached snapshots against the configured policy:
-
-- **Dashboard**: Each repository shows a `Policy OK` (info/blue) or `Policy Warning` (amber/yellow) badge next to the scan status badge. No badge is shown if no policy is configured.
-- **Snapshots page**: If the policy is violated, an amber warning banner at the top of the page lists each specific violation (e.g., *"keepDaily: Missing backup for 2026-03-12"*).
-
-> ⚠️ **Retention violations are soft warnings, not errors.** They use amber/yellow (`bg-warning`), never red (`bg-danger`). They do **not** affect the overall dashboard status card at the top.
+Scan and integrity check failures are automatically logged to a persistent error log:
+- View in **Admin** → **Error Log** with date range filtering
+- Paginated table with timestamp, repository name, action, error message, and stack trace
+- Entries older than 12 months are automatically cleaned up (daily at 03:00)
+- Admins can clear all entries manually
 
 ## Configuration
 
@@ -299,34 +264,24 @@ After each scan, the system evaluates the cached snapshots against the configure
 | `server.port` | `8080` | Server port |
 | `restic.binary` | `restic` | Path to the restic binary |
 | `restic.timeout` | `300` | Timeout in seconds for restic commands |
-| `restic.scan.check-interval` | `60000` | Interval in ms to check for due scans |
-| `restic.encryption.key` | *(empty)* | Base64-encoded AES key for encrypting sensitive data at rest (16/24/32 bytes) |
+| `restic.scan.check-interval` | `60000` | Interval in ms to check for due scans/checks |
+| `restic.encryption.key` | *(empty)* | Base64-encoded AES key for encrypting sensitive data (16/24/32 bytes) |
 
 ### Encryption of Sensitive Data
 
-Repository passwords and S3 credentials (access key, secret key) are encrypted at rest in the database using AES-GCM when an encryption key is configured.
-
-**Generate a key:**
+Repository passwords and backend credentials (S3 access/secret key, Azure account key) are encrypted at rest using AES-256-GCM when an encryption key is configured.
 
 ```bash
+# Generate a key
 openssl rand -base64 32
-```
 
-**Configure via environment variable (recommended):**
-
-```bash
+# Configure via environment variable (recommended)
 export RESTIC_ENCRYPTION_KEY="your-generated-base64-key"
 ```
 
-Or set in `application.properties`:
-
-```properties
-restic.encryption.key=your-generated-base64-key
-```
-
-> ⚠️ **Important**: Without an encryption key, sensitive data is stored in plain text. Always configure encryption in production.
-> 
-> The system gracefully handles legacy unencrypted data — existing plain-text values will be readable even after encryption is enabled, and will be encrypted upon the next save.
+> ⚠️ Without an encryption key, sensitive data is stored in plain text. Always configure encryption in production.
+>
+> The system handles legacy unencrypted data gracefully — existing plain-text values remain readable and will be encrypted on next save.
 
 ### Docker Environment Variables
 
@@ -337,21 +292,19 @@ restic.encryption.key=your-generated-base64-key
 | `DB_NAME` | `resticexplorer` | Database name |
 | `DB_USER` | `resticexplorer` | Database user |
 | `DB_PASSWORD` | `resticexplorer` | Database password |
-| `RESTIC_ENCRYPTION_KEY` | *(empty)* | Base64-encoded AES key for encrypting sensitive data at rest |
+| `RESTIC_ENCRYPTION_KEY` | *(empty)* | AES encryption key for sensitive data |
 
 ## Deployment
 
 ### Docker Compose
 
-The included `docker-compose.yml` runs the application with PostgreSQL:
-
 ```bash
 docker compose up --build -d
 ```
 
-### Ansible
+The included `docker-compose.yml` runs the application with PostgreSQL. The Docker image uses a multi-stage build with Eclipse Temurin 21 and includes restic, openssh-client, and curl.
 
-An Ansible playbook is provided in `deploy/ansible/`:
+### Ansible
 
 ```bash
 cd deploy/ansible
@@ -374,41 +327,11 @@ mvn clean package
 mvn test
 ```
 
-### Project Structure
+## Migration Notes
 
-```
-src/main/java/org/remus/resticexplorer/
-├── ResticExplorerApplication.java     # Main application entry point
-├── config/                            # Security, web config & encryption
-│   ├── crypto/                        # AES-GCM encryption service & converter
-│   └── exception/                     # Custom exceptions & global handler
-├── admin/                             # Admin feature (auth, setup)
-│   ├── web/                           # Controllers, DTOs
-│   ├── data/                          # JPA entities, repositories
-│   └── AdminService.java             # Service layer
-├── repository/                        # Repository management feature
-│   ├── web/                           # Controllers, DTOs
-│   ├── data/                          # JPA entities, repositories
-│   ├── RepositoryService.java        # Repository CRUD service
-│   └── GroupService.java             # Repository group management
-├── scanning/                          # Scanning, checks & retention policy
-│   ├── web/                           # Dashboard controller
-│   ├── data/                          # Snapshot, ScanResult, CheckResult entities
-│   ├── ScanService.java              # Scheduled scanning service
-│   ├── CheckService.java             # Scheduled integrity check service
-│   ├── RetentionPolicyChecker.java   # Retention policy evaluation logic
-│   └── RetentionPolicyResult.java    # Retention policy result DTO
-├── download/                          # Snapshot download feature
-│   └── web/                           # Download controller
-├── restic/                            # Restic CLI integration
-│   ├── ResticRepositoryProvider.java  # Provider interface (extensible)
-│   ├── ResticS3Provider.java          # S3 implementation
-│   ├── ResticAzureProvider.java       # Azure Blob Storage implementation
-│   ├── ResticSftpProvider.java        # SFTP implementation
-│   └── ResticCommandService.java      # Command execution service
-└── health/                            # Actuator health indicator
-    └── ResticMetadataHealthIndicator.java
-```
+### Upgrading from < 0.4 to ≥ 1.0
+
+Version 0.4 includes a `SchemaFixRunner` that reconciles Hibernate check constraints for PostgreSQL enum columns (`RepositoryType`, `RepositoryPropertyKey`). This runner will be removed in 1.0. **You must run a version ≥ 0.4 and < 1.0 before upgrading to ≥ 1.0.**
 
 ## License
 
