@@ -4,6 +4,8 @@ import org.remus.resticexplorer.repository.data.RepositoryPropertyKey;
 import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.springframework.stereotype.Component;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +46,9 @@ public class ResticRestProvider implements ResticRepositoryProvider {
                 } else {
                     return url;
                 }
-                return prefix + scheme + username + ":" + password + "@" + hostAndPath;
+                return prefix + scheme + URLEncoder.encode(username, StandardCharsets.UTF_8)
+                        + ":" + URLEncoder.encode(password, StandardCharsets.UTF_8)
+                        + "@" + hostAndPath;
             }
         }
         return url;

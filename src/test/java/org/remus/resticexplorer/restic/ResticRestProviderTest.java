@@ -28,6 +28,7 @@ class ResticRestProviderTest {
 
         Map<String, String> env = provider.buildEnvironment(repo);
 
+        assertEquals(1, env.size());
         assertEquals("secret", env.get("RESTIC_PASSWORD"));
     }
 
@@ -92,5 +93,45 @@ class ResticRestProviderTest {
         repo.setUrl("rest:http://localhost:8000/");
 
         assertTrue(provider.buildExtraArguments(repo).isEmpty());
+    }
+
+    @Test
+    void testBuildRepositoryUrlWithSpecialCharactersInCredentials() {
+        ResticRepository repo = new ResticRepository();
+        repo.setType(RepositoryType.REST);
+        repo.setUrl("rest:http://localhost:8000/");
+        repo.setRepositoryPassword("secret");
+        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "user@domain");
+        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "p@ss:word/test");
+
+        String url = provider.buildRepositoryUrl(repo);
+
+        assertEquals("rest:http://user%40domain:p%40ss%3Aword%2Ftest@localhost:8000/", url);
+    }
+
+    @Test
+    void testBuildRepositoryUrlWithoutRestPrefix() {
+        ResticRepository repo = new ResticRepository();
+        repo.setType(RepositoryType.REST);
+        repo.setUrl("http://localhost:8000/");
+        repo.setRepositoryPassword("secret");
+        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
+        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "pass");
+
+        // Without rest: prefix, URL is returned as-is
+        assertEquals("http://localhost:8000/", provider.buildRepositoryUrl(repo));
+    }
+
+    @Test
+    void testBuildRepositoryUrlWithUnknownScheme() {
+        ResticRepository repo = new ResticRepository();
+        repo.setType(RepositoryType.REST);
+        repo.setUrl("rest:ftp://localhost:8000/");
+        repo.setRepositoryPassword("secret");
+        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
+        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "pass");
+
+        // Unknown scheme after rest: prefix, URL is returned as-is
+        assertEquals("rest:ftp://localhost:8000/", provider.buildRepositoryUrl(repo));
     }
 }
