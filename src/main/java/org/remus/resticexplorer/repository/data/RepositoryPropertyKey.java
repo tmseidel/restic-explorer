@@ -19,7 +19,11 @@ public enum RepositoryPropertyKey {
 
     // SFTP-specific properties
     SFTP_PASSWORD_COMMAND("Password Command", false),
-    SFTP_COMMAND("SFTP Command", false);
+    SFTP_COMMAND("SFTP Command", false),
+
+    // REST-specific properties
+    REST_USERNAME("Username", false),
+    REST_PASSWORD("Password", true);
 
     private final String displayName;
     private final boolean sensitive;

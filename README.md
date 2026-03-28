@@ -141,6 +141,7 @@ On first launch, you are redirected to the **Setup** page:
 | **Amazon S3 / S3-Compatible** | `S3` | `s3:https://s3.amazonaws.com/bucket/path` | Access Key, Secret Key, Region |
 | **Microsoft Azure Blob Storage** | `AZURE` | `azure:container-name:/path` | Account Name, Account Key, Endpoint Suffix |
 | **SFTP** | `SFTP` | `sftp:user@host:/path/to/repo` | Password Command (optional), SFTP Command (optional) |
+| **REST Server** | `REST` | `rest:http://host:8000/` | Username (optional), Password (optional) |
 
 #### SFTP Connector Details
 
@@ -168,6 +169,18 @@ Then set the **SFTP Command** to: `ssh user@host -i /app/ssh/id_rsa -s sftp`
 > ⚠️ Mount the key as read-only (`:ro`). The Docker image runs as UID 1000, so ensure the key file is readable by that user (`chmod 600`).
 
 See [docs/SYSTEMTEST_SFTP.md](docs/SYSTEMTEST_SFTP.md) for a full SFTP testing tutorial.
+
+#### REST Server Connector Details
+
+The REST connector supports restic repositories hosted on a [restic REST server](https://github.com/restic/rest-server). It supports optional HTTP basic authentication.
+
+- **Repository URL**: Standard restic REST URL, e.g. `rest:http://host:8000/` or `rest:https://host:8000/path`
+- **Username** *(optional)*: Username for HTTP basic authentication
+- **Password** *(optional)*: Password for HTTP basic authentication
+
+When credentials are provided, they are injected into the URL for the restic CLI (e.g. `rest:http://user:pass@host:8000/`).
+
+See [docs/SYSTEMTEST_REST.md](docs/SYSTEMTEST_REST.md) for a full REST server testing tutorial.
 
 ### 3. Dashboard
 

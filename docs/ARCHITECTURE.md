@@ -416,9 +416,16 @@ classDiagram
         +buildExtraArguments() -o sftp.command=...
     }
 
+    class ResticRestProvider {
+        +getType() "REST"
+        +buildEnvironment() RESTIC_PASSWORD
+        +buildRepositoryUrl() injects user:pass into URL
+    }
+
     ResticRepositoryProvider <|.. ResticS3Provider
     ResticRepositoryProvider <|.. ResticAzureProvider
     ResticRepositoryProvider <|.. ResticSftpProvider
+    ResticRepositoryProvider <|.. ResticRestProvider
 
     class ResticCommandService {
         -providers Map~String, ResticRepositoryProvider~
@@ -451,6 +458,7 @@ Backend-specific configuration (S3 keys, Azure credentials, SFTP commands) is st
 | S3 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION` | Access Key, Secret Key |
 | Azure | `AZURE_ACCOUNT_NAME`, `AZURE_ACCOUNT_KEY`, `AZURE_ENDPOINT_SUFFIX` | Account Key |
 | SFTP | `SFTP_PASSWORD_COMMAND`, `SFTP_COMMAND` | None |
+| REST | `REST_USERNAME`, `REST_PASSWORD` | Password |
 
 ## UI Architecture
 
