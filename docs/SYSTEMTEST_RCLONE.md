@@ -26,11 +26,14 @@ docker ps | grep sftp-rclone-test
 
 ## 2. Configure Rclone
 
-Create an rclone remote pointing to the SFTP server. You can do this interactively with `rclone config` or by creating the config file directly.
+A pre-configured `rclone.conf` is included at `systemtest/rclone-test/rclone.conf` and mounted into the Docker Compose setup automatically. For local (non-Docker) testing, copy it to your rclone config directory:
 
-### Option A: Manual Config
+```bash
+mkdir -p ~/.config/rclone
+cp systemtest/rclone-test/rclone.conf ~/.config/rclone/rclone.conf
+```
 
-Create or append to `~/.config/rclone/rclone.conf`:
+The config defines a remote called `sftp-test` pointing to the SFTP server:
 
 ```ini
 [sftp-test]
@@ -42,16 +45,6 @@ pass = jm2DMQC7CM8DS8sPJYDMliFcEg
 ```
 
 > **Note**: The `pass` value above is `testpassword` obscured with `rclone obscure testpassword`. Rclone requires obscured passwords in its config file.
-
-### Option B: Using rclone config
-
-```bash
-rclone config create sftp-test sftp \
-  host=localhost \
-  port=2223 \
-  user=testuser \
-  pass=$(rclone obscure testpassword)
-```
 
 Verify the remote works:
 
@@ -96,11 +89,11 @@ restic -r rclone:sftp-test:config/restic-repo snapshots
    - **Repository Password**: `test1234`
 4. Click **Save**, then trigger a scan from the dashboard
 
-> **Note**: Rclone must be installed on the same machine where Restic Explorer is running, and the rclone remote (`sftp-test`) must be configured in that machine's rclone config.
+> **Note**: Rclone must be installed on the same machine where Restic Explorer is running, and the rclone remote (`sftp-test`) must be configured in that machine's rclone config. The pre-configured `rclone.conf` is included at `systemtest/rclone-test/rclone.conf`.
 
 ### Running in Docker
 
-When running in Docker, rclone must be available inside the container. Mount your rclone configuration:
+Rclone is already included in the Docker image. Mount your rclone configuration into the container:
 
 ```yaml
 services:
@@ -108,8 +101,10 @@ services:
     # ... existing app config ...
     volumes:
       - app-data:/app/data
-      - ~/.config/rclone/rclone.conf:/home/appuser/.config/rclone/rclone.conf:ro
+      - ./rclone.conf:/home/appuser/.config/rclone/rclone.conf:ro
 ```
+
+The `docker-compose-rclone.yml` in `systemtest/rclone-test/` already mounts the included `rclone.conf`.
 
 Configure the repository in Restic Explorer:
 
@@ -149,11 +144,14 @@ services:
       - "2223:2222"
     volumes:
       - sftp-rclone-data:/config
+      - ./rclone.conf:/home/appuser/.config/rclone/rclone.conf:ro
     restart: unless-stopped
 
 volumes:
   sftp-rclone-data:
 ```
+
+The `rclone.conf` file is included in the repository at `systemtest/rclone-test/rclone.conf` with the default credentials above.
 
 ## 8. Cleanup
 
