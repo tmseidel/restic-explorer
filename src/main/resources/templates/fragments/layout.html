@@ -46,6 +46,15 @@
                 </li>
             </ul>
             <ul class="navbar-nav">
+                <li id="active-jobs-container" class="nav-item dropdown" style="display:none">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-arrow-repeat spin-animation"></i>
+                        <span th:text="#{nav.activeJobs}">Active Jobs</span>
+                        <span id="active-jobs-badge" class="badge bg-warning text-dark">0</span>
+                    </a>
+                    <ul id="active-jobs-list" class="dropdown-menu dropdown-menu-end">
+                    </ul>
+                </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <form th:action="@{/logout}" method="post" class="d-inline">
                         <button type="submit" class="btn btn-outline-light btn-sm">
