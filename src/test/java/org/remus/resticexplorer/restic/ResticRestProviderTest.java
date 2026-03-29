@@ -20,7 +20,7 @@ class ResticRestProviderTest {
     }
 
     @Test
-    void testBuildEnvironment() {
+    void testBuildEnvironmentWithoutCredentials() {
         ResticRepository repo = new ResticRepository();
         repo.setType(RepositoryType.REST);
         repo.setUrl("rest:http://localhost:8000/");
@@ -33,7 +33,7 @@ class ResticRestProviderTest {
     }
 
     @Test
-    void testBuildRepositoryUrlWithCredentials() {
+    void testBuildEnvironmentWithCredentials() {
         ResticRepository repo = new ResticRepository();
         repo.setType(RepositoryType.REST);
         repo.setUrl("rest:http://localhost:8000/");
@@ -41,49 +41,39 @@ class ResticRestProviderTest {
         repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
         repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "restpass");
 
-        String url = provider.buildRepositoryUrl(repo);
+        Map<String, String> env = provider.buildEnvironment(repo);
 
-        assertEquals("rest:http://admin:restpass@localhost:8000/", url);
+        assertEquals(3, env.size());
+        assertEquals("secret", env.get("RESTIC_PASSWORD"));
+        assertEquals("admin", env.get("RESTIC_REST_USERNAME"));
+        assertEquals("restpass", env.get("RESTIC_REST_PASSWORD"));
     }
 
     @Test
-    void testBuildRepositoryUrlWithCredentialsHttps() {
-        ResticRepository repo = new ResticRepository();
-        repo.setType(RepositoryType.REST);
-        repo.setUrl("rest:https://backup.example.com:8000/repo");
-        repo.setRepositoryPassword("secret");
-        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "user");
-        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "pass");
-
-        String url = provider.buildRepositoryUrl(repo);
-
-        assertEquals("rest:https://user:pass@backup.example.com:8000/repo", url);
-    }
-
-    @Test
-    void testBuildRepositoryUrlWithoutCredentials() {
-        ResticRepository repo = new ResticRepository();
-        repo.setType(RepositoryType.REST);
-        repo.setUrl("rest:http://localhost:8000/");
-        repo.setRepositoryPassword("secret");
-
-        String url = provider.buildRepositoryUrl(repo);
-
-        assertEquals("rest:http://localhost:8000/", url);
-    }
-
-    @Test
-    void testBuildRepositoryUrlWithUsernameOnly() {
+    void testBuildEnvironmentWithUsernameOnly() {
         ResticRepository repo = new ResticRepository();
         repo.setType(RepositoryType.REST);
         repo.setUrl("rest:http://localhost:8000/");
         repo.setRepositoryPassword("secret");
         repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
 
-        String url = provider.buildRepositoryUrl(repo);
+        Map<String, String> env = provider.buildEnvironment(repo);
 
-        // Without password, credentials are not injected
-        assertEquals("rest:http://localhost:8000/", url);
+        assertEquals(2, env.size());
+        assertEquals("admin", env.get("RESTIC_REST_USERNAME"));
+    }
+
+    @Test
+    void testBuildRepositoryUrlIsAlwaysReturnedAsIs() {
+        ResticRepository repo = new ResticRepository();
+        repo.setType(RepositoryType.REST);
+        repo.setUrl("rest:http://localhost:8000/");
+        repo.setRepositoryPassword("secret");
+        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
+        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "restpass");
+
+        // Credentials go via env vars, URL is never modified
+        assertEquals("rest:http://localhost:8000/", provider.buildRepositoryUrl(repo));
     }
 
     @Test
@@ -93,45 +83,5 @@ class ResticRestProviderTest {
         repo.setUrl("rest:http://localhost:8000/");
 
         assertTrue(provider.buildExtraArguments(repo).isEmpty());
-    }
-
-    @Test
-    void testBuildRepositoryUrlWithSpecialCharactersInCredentials() {
-        ResticRepository repo = new ResticRepository();
-        repo.setType(RepositoryType.REST);
-        repo.setUrl("rest:http://localhost:8000/");
-        repo.setRepositoryPassword("secret");
-        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "user@domain");
-        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "p@ss:word/test");
-
-        String url = provider.buildRepositoryUrl(repo);
-
-        assertEquals("rest:http://user%40domain:p%40ss%3Aword%2Ftest@localhost:8000/", url);
-    }
-
-    @Test
-    void testBuildRepositoryUrlWithoutRestPrefix() {
-        ResticRepository repo = new ResticRepository();
-        repo.setType(RepositoryType.REST);
-        repo.setUrl("http://localhost:8000/");
-        repo.setRepositoryPassword("secret");
-        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
-        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "pass");
-
-        // Without rest: prefix, URL is returned as-is
-        assertEquals("http://localhost:8000/", provider.buildRepositoryUrl(repo));
-    }
-
-    @Test
-    void testBuildRepositoryUrlWithUnknownScheme() {
-        ResticRepository repo = new ResticRepository();
-        repo.setType(RepositoryType.REST);
-        repo.setUrl("rest:ftp://localhost:8000/");
-        repo.setRepositoryPassword("secret");
-        repo.setProperty(RepositoryPropertyKey.REST_USERNAME, "admin");
-        repo.setProperty(RepositoryPropertyKey.REST_PASSWORD, "pass");
-
-        // Unknown scheme after rest: prefix, URL is returned as-is
-        assertEquals("rest:ftp://localhost:8000/", provider.buildRepositoryUrl(repo));
     }
 }

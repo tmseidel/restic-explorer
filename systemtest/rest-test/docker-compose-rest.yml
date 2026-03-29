@@ -2,12 +2,11 @@ services:
   rest-server:
     image: restic/rest-server:latest
     container_name: rest-server-test
-    environment:
-      OPTIONS: "--no-auth"
     ports:
       - "8500:8000"
     volumes:
       - rest-data:/data
+      - ./htpasswd:/data/.htpasswd:ro
     restart: unless-stopped
 
 volumes:
