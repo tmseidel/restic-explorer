@@ -32,6 +32,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/setup/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/api/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/repositories/new", "/repositories/*/edit", "/repositories/*/delete", "/repositories/*/scan", "/repositories/*/check", "/repositories/*/unlock").hasRole("ADMIN")
