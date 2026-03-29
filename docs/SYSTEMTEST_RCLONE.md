@@ -41,10 +41,12 @@ type = sftp
 host = localhost
 port = 2223
 user = testuser
-pass = jm2DMQC7CM8DS8sPJYDMliFcEg
+pass = 1U-OY86jKVYLIDNcpdX1ihpkMvDzvd-V85oZaw
+known_hosts_file = /dev/null
+shell_type = unix
 ```
 
-> **Note**: The `pass` value above is `testpassword` obscured with `rclone obscure testpassword`. Rclone requires obscured passwords in its config file.
+> **Note**: The `pass` value above is `testpassword` obscured with `rclone obscure testpassword`. Rclone requires obscured passwords in its config file. The `known_hosts_file = /dev/null` disables host key verification for the test environment.
 
 Verify the remote works:
 
