@@ -43,6 +43,9 @@ public class RepositoryForm {
     private String restUsername;
     private String restPassword;
 
+    private String rcloneProgram;
+    private String rcloneArgs;
+
     @NotNull(message = "{validation.scanInterval.required}")
     @Min(value = 1, message = "{validation.scanInterval.min}")
     private Integer scanIntervalMinutes = 60;

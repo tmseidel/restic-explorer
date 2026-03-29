@@ -66,6 +66,7 @@
                             <div id="url-hint-azure" class="form-text" th:utext="#{repository.form.url.hint.azure}">For Azure: ...</div>
                             <div id="url-hint-sftp" class="form-text" th:utext="#{repository.form.url.hint.sftp}">For SFTP: ...</div>
                             <div id="url-hint-rest" class="form-text" th:utext="#{repository.form.url.hint.rest}">For REST: ...</div>
+                            <div id="url-hint-rclone" class="form-text" th:utext="#{repository.form.url.hint.rclone}">For Rclone: ...</div>
                         </div>
 
                         <div class="mb-3">
@@ -157,6 +158,24 @@
                                        th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
                                 <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
                                 <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.rest.password.hint}">...</div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="config-rclone" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.rcloneconfig}">Rclone Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="rcloneProgram" class="form-label" th:text="#{repository.form.rclone.program}">Rclone Program</label>
+                                <input type="text" class="form-control" id="rcloneProgram" th:field="*{rcloneProgram}"
+                                       th:placeholder="#{repository.form.rclone.program.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.rclone.program.hint}">...</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="rcloneArgs" class="form-label" th:text="#{repository.form.rclone.args}">Rclone Args</label>
+                                <input type="text" class="form-control" id="rcloneArgs" th:field="*{rcloneArgs}"
+                                       th:placeholder="#{repository.form.rclone.args.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.rclone.args.hint}">...</div>
                             </div>
                         </fieldset>
 
