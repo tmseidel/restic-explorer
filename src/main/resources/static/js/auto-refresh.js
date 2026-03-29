@@ -18,7 +18,7 @@
     var repoId = scriptTag ? scriptTag.getAttribute('data-repo-id') : null;
 
     function computeHash(data) {
-        return JSON.stringify(data.repositories) + '|' + data.overallStatus;
+        return JSON.stringify(data);
     }
 
     function updateActiveJobsBadge(jobs) {
@@ -83,8 +83,8 @@
 
                 updateActiveJobsBadge(data.activeJobs || []);
             })
-            .catch(function () {
-                // Silently ignore errors — will retry on next interval
+            .catch(function (error) {
+                console.warn('Status check failed:', error);
             });
     }
 
