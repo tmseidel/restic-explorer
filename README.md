@@ -142,6 +142,7 @@ On first launch, you are redirected to the **Setup** page:
 | **Microsoft Azure Blob Storage** | `AZURE` | `azure:container-name:/path` | Account Name, Account Key, Endpoint Suffix |
 | **SFTP** | `SFTP` | `sftp:user@host:/path/to/repo` | Password Command (optional), SFTP Command (optional) |
 | **REST Server** | `REST` | `rest:http://host:8000/` | Username (optional), Password (optional) |
+| **Rclone** | `RCLONE` | `rclone:remote:path` | Rclone Program (optional), Rclone Args (optional) |
 
 #### SFTP Connector Details
 
@@ -181,6 +182,18 @@ The REST connector supports restic repositories hosted on a [restic REST server]
 When credentials are provided, they are injected into the URL for the restic CLI (e.g. `rest:http://user:pass@host:8000/`).
 
 See [docs/SYSTEMTEST_REST.md](docs/SYSTEMTEST_REST.md) for a full REST server testing tutorial.
+
+#### Rclone Connector Details
+
+The Rclone connector supports restic repositories accessible via [rclone](https://rclone.org/), which provides access to many cloud storage services (Google Drive, Dropbox, OneDrive, Backblaze B2, etc.). Rclone must be installed and configured on the host (or in the Docker container).
+
+- **Repository URL**: Standard restic rclone URL, e.g. `rclone:remote:path` (e.g. `rclone:b2prod:yggdrasil/repo`)
+- **Rclone Program** *(optional)*: Path to the rclone binary. Defaults to `rclone` (found via PATH).
+- **Rclone Args** *(optional)*: Custom arguments passed to rclone. Defaults to `serve restic --stdio --b2-hard-delete`.
+
+Restic starts rclone as a subprocess — credentials are managed by rclone's own configuration (`~/.config/rclone/rclone.conf`), not by Restic Explorer.
+
+See [docs/SYSTEMTEST_RCLONE.md](docs/SYSTEMTEST_RCLONE.md) for a full rclone testing tutorial.
 
 ### 3. Dashboard
 

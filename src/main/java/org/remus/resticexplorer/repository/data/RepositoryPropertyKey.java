@@ -23,7 +23,11 @@ public enum RepositoryPropertyKey {
 
     // REST-specific properties
     REST_USERNAME("Username", false),
-    REST_PASSWORD("Password", true);
+    REST_PASSWORD("Password", true),
+
+    // Rclone-specific properties
+    RCLONE_PROGRAM("Rclone Program", false),
+    RCLONE_ARGS("Rclone Args", false);
 
     private final String displayName;
     private final boolean sensitive;

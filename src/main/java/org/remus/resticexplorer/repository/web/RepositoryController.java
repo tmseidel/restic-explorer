@@ -63,6 +63,8 @@ public class RepositoryController {
         form.setSftpPasswordCommand(repo.getProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND));
         form.setSftpCommand(repo.getProperty(RepositoryPropertyKey.SFTP_COMMAND));
         form.setRestUsername(repo.getProperty(RepositoryPropertyKey.REST_USERNAME));
+        form.setRcloneProgram(repo.getProperty(RepositoryPropertyKey.RCLONE_PROGRAM));
+        form.setRcloneArgs(repo.getProperty(RepositoryPropertyKey.RCLONE_ARGS));
         form.setScanIntervalMinutes(repo.getScanIntervalMinutes());
         form.setCheckIntervalMinutes(repo.getCheckIntervalMinutes());
         form.setEnabled(repo.isEnabled());
@@ -137,6 +139,8 @@ public class RepositoryController {
         repo.setProperty(RepositoryPropertyKey.SFTP_PASSWORD_COMMAND, form.getSftpPasswordCommand());
         repo.setProperty(RepositoryPropertyKey.SFTP_COMMAND, form.getSftpCommand());
         repo.setProperty(RepositoryPropertyKey.REST_USERNAME, form.getRestUsername());
+        repo.setProperty(RepositoryPropertyKey.RCLONE_PROGRAM, form.getRcloneProgram());
+        repo.setProperty(RepositoryPropertyKey.RCLONE_ARGS, form.getRcloneArgs());
         repo.setScanIntervalMinutes(form.getScanIntervalMinutes());
         repo.setCheckIntervalMinutes(form.getCheckIntervalMinutes());
         repo.setEnabled(form.isEnabled());

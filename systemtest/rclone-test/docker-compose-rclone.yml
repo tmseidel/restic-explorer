@@ -1,0 +1,20 @@
+services:
+  sftp:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: sftp-rclone-test
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Berlin
+      USER_NAME: testuser
+      USER_PASSWORD: testpassword
+      PASSWORD_ACCESS: "true"
+      SUDO_ACCESS: "false"
+    ports:
+      - "2223:2222"
+    volumes:
+      - sftp-rclone-data:/config
+    restart: unless-stopped
+
+volumes:
+  sftp-rclone-data:

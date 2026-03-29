@@ -422,10 +422,17 @@ classDiagram
         +buildRepositoryUrl() injects user:pass into URL
     }
 
+    class ResticRcloneProvider {
+        +getType() "RCLONE"
+        +buildEnvironment() RESTIC_PASSWORD
+        +buildExtraArguments() -o rclone.program=..., -o rclone.args=...
+    }
+
     ResticRepositoryProvider <|.. ResticS3Provider
     ResticRepositoryProvider <|.. ResticAzureProvider
     ResticRepositoryProvider <|.. ResticSftpProvider
     ResticRepositoryProvider <|.. ResticRestProvider
+    ResticRepositoryProvider <|.. ResticRcloneProvider
 
     class ResticCommandService {
         -providers Map~String, ResticRepositoryProvider~
