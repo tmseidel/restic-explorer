@@ -7,13 +7,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.4</version>
+        <version>4.0.5</version>
         <relativePath/>
     </parent>
 
     <groupId>org.remus</groupId>
     <artifactId>restic-explorer</artifactId>
-    <version>0.5.0</version>
+    <version>1.0.0</version>
     <name>Restic Explorer</name>
     <description>Web application to manage and explore restic backup repositories</description>
 

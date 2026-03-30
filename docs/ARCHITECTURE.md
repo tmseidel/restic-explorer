@@ -416,9 +416,23 @@ classDiagram
         +buildExtraArguments() -o sftp.command=...
     }
 
+    class ResticRestProvider {
+        +getType() "REST"
+        +buildEnvironment() RESTIC_PASSWORD, RESTIC_REST_USERNAME, RESTIC_REST_PASSWORD
+        +buildRepositoryUrl() returns URL as-is
+    }
+
+    class ResticRcloneProvider {
+        +getType() "RCLONE"
+        +buildEnvironment() RESTIC_PASSWORD
+        +buildExtraArguments() -o rclone.program=..., -o rclone.args=...
+    }
+
     ResticRepositoryProvider <|.. ResticS3Provider
     ResticRepositoryProvider <|.. ResticAzureProvider
     ResticRepositoryProvider <|.. ResticSftpProvider
+    ResticRepositoryProvider <|.. ResticRestProvider
+    ResticRepositoryProvider <|.. ResticRcloneProvider
 
     class ResticCommandService {
         -providers Map~String, ResticRepositoryProvider~
@@ -451,6 +465,8 @@ Backend-specific configuration (S3 keys, Azure credentials, SFTP commands) is st
 | S3 | `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_REGION` | Access Key, Secret Key |
 | Azure | `AZURE_ACCOUNT_NAME`, `AZURE_ACCOUNT_KEY`, `AZURE_ENDPOINT_SUFFIX` | Account Key |
 | SFTP | `SFTP_PASSWORD_COMMAND`, `SFTP_COMMAND` | None |
+| REST | `REST_USERNAME`, `REST_PASSWORD` | Password |
+| Rclone | `RCLONE_PROGRAM`, `RCLONE_ARGS` | None |
 
 ## UI Architecture
 
@@ -510,8 +526,4 @@ graph TB
 | Containerization | Docker (multi-stage build) |
 | Deployment | Docker Compose, Ansible |
 | Backup Tool | Restic CLI |
-
-## Schema Migration
-
-The `SchemaFixRunner` (in `config/`) runs on startup to reconcile Hibernate-generated check constraints on PostgreSQL for `@Enumerated(STRING)` columns. When new enum values are added (e.g. a new `RepositoryType` or `RepositoryPropertyKey`), `ddl-auto=update` does not update existing constraints. The runner replaces stale constraints with current values. This will be removed in version 1.0.
 

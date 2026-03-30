@@ -1,10 +1,13 @@
 package org.remus.resticexplorer.repository.data;
 
+import lombok.Getter;
+
 /**
  * Enum representing configuration property keys for repository backends.
  * Each repository type defines which keys it requires.
  * Keys marked as sensitive will be encrypted at rest in the database.
  */
+@Getter
 public enum RepositoryPropertyKey {
 
     // S3-specific properties
@@ -19,7 +22,15 @@ public enum RepositoryPropertyKey {
 
     // SFTP-specific properties
     SFTP_PASSWORD_COMMAND("Password Command", false),
-    SFTP_COMMAND("SFTP Command", false);
+    SFTP_COMMAND("SFTP Command", false),
+
+    // REST-specific properties
+    REST_USERNAME("Username", false),
+    REST_PASSWORD("Password", true),
+
+    // Rclone-specific properties
+    RCLONE_PROGRAM("Rclone Program", false),
+    RCLONE_ARGS("Rclone Args", false);
 
     private final String displayName;
     private final boolean sensitive;
@@ -29,11 +40,4 @@ public enum RepositoryPropertyKey {
         this.sensitive = sensitive;
     }
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public boolean isSensitive() {
-        return sensitive;
-    }
 }

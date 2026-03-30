@@ -7,7 +7,7 @@ data/
 *.iml
 deploy/
 docs/
-sftp-test/
+systemtest/
 node_modules/
 .dockerignore
 docker-compose*.yml

@@ -65,6 +65,8 @@
                             <div id="url-hint-s3" class="form-text" th:utext="#{repository.form.url.hint}">For S3: ...</div>
                             <div id="url-hint-azure" class="form-text" th:utext="#{repository.form.url.hint.azure}">For Azure: ...</div>
                             <div id="url-hint-sftp" class="form-text" th:utext="#{repository.form.url.hint.sftp}">For SFTP: ...</div>
+                            <div id="url-hint-rest" class="form-text" th:utext="#{repository.form.url.hint.rest}">For REST: ...</div>
+                            <div id="url-hint-rclone" class="form-text" th:utext="#{repository.form.url.hint.rclone}">For Rclone: ...</div>
                         </div>
 
                         <div class="mb-3">
@@ -137,6 +139,43 @@
                                 <input type="text" class="form-control" id="sftpCommand" th:field="*{sftpCommand}"
                                        th:placeholder="#{repository.form.sftp.command.placeholder}">
                                 <div class="form-text" th:utext="#{repository.form.sftp.command.hint}">...</div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="config-rest" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.restconfig}">REST Server Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="restUsername" class="form-label" th:text="#{repository.form.rest.username}">Username</label>
+                                <input type="text" class="form-control" id="restUsername" th:field="*{restUsername}"
+                                       th:placeholder="#{repository.form.rest.username.placeholder}">
+                                <div class="form-text" th:text="#{repository.form.rest.username.hint}">...</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="restPassword" class="form-label" th:text="#{repository.form.rest.password}">Password</label>
+                                <input type="password" class="form-control" id="restPassword" th:field="*{restPassword}"
+                                       th:placeholder="${repositoryForm.id != null} ? #{repository.form.sensitive.placeholder} : ''">
+                                <div class="form-text" th:if="${repositoryForm.id != null}" th:text="#{repository.form.sensitive.hint}">Leave unchanged to keep current value.</div>
+                                <div class="form-text" th:if="${repositoryForm.id == null}" th:text="#{repository.form.rest.password.hint}">...</div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset id="config-rclone" class="border rounded p-3 mb-3">
+                            <legend class="w-auto px-2 fs-6" th:text="#{repository.form.rcloneconfig}">Rclone Configuration</legend>
+
+                            <div class="mb-3">
+                                <label for="rcloneProgram" class="form-label" th:text="#{repository.form.rclone.program}">Rclone Program</label>
+                                <input type="text" class="form-control" id="rcloneProgram" th:field="*{rcloneProgram}"
+                                       th:placeholder="#{repository.form.rclone.program.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.rclone.program.hint}">...</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="rcloneArgs" class="form-label" th:text="#{repository.form.rclone.args}">Rclone Args</label>
+                                <input type="text" class="form-control" id="rcloneArgs" th:field="*{rcloneArgs}"
+                                       th:placeholder="#{repository.form.rclone.args.placeholder}">
+                                <div class="form-text" th:utext="#{repository.form.rclone.args.hint}">...</div>
                             </div>
                         </fieldset>
 

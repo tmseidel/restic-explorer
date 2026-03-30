@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests -o
 FROM eclipse-temurin:21-jre-alpine
 
 # Use UID/GID 1000 so bind-mounted SSH keys (owned by the default host user) are readable.
-RUN apk add --no-cache restic ca-certificates openssh-client curl && \
+RUN apk add --no-cache restic rclone ca-certificates openssh-client curl && \
     addgroup -g 1000 appgroup && adduser -u 1000 -G appgroup -D appuser && \
     mkdir -p /app/data /app/ssh && chown -R appuser:appgroup /app
 
