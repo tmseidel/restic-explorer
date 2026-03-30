@@ -466,6 +466,7 @@ Backend-specific configuration (S3 keys, Azure credentials, SFTP commands) is st
 | Azure | `AZURE_ACCOUNT_NAME`, `AZURE_ACCOUNT_KEY`, `AZURE_ENDPOINT_SUFFIX` | Account Key |
 | SFTP | `SFTP_PASSWORD_COMMAND`, `SFTP_COMMAND` | None |
 | REST | `REST_USERNAME`, `REST_PASSWORD` | Password |
+| Rclone | `RCLONE_PROGRAM`, `RCLONE_ARGS` | None |
 
 ## UI Architecture
 
