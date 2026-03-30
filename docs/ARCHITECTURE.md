@@ -526,7 +526,3 @@ graph TB
 | Deployment | Docker Compose, Ansible |
 | Backup Tool | Restic CLI |
 
-## Schema Migration
-
-The `SchemaFixRunner` (in `config/`) runs on startup to reconcile Hibernate-generated check constraints on PostgreSQL for `@Enumerated(STRING)` columns. When new enum values are added (e.g. a new `RepositoryType` or `RepositoryPropertyKey`), `ddl-auto=update` does not update existing constraints. The runner replaces stale constraints with current values. This will be removed in version 1.0.
-
