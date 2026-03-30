@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   app:
     build:
@@ -7,6 +5,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       DB_HOST: db
@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     volumes:
       - app-data:/app/data
+      - ./test-sftp-key:/app/ssh/test-sftp-key:ro
 
   db:
     image: postgres:16-alpine
