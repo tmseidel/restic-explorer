@@ -418,8 +418,8 @@ classDiagram
 
     class ResticRestProvider {
         +getType() "REST"
-        +buildEnvironment() RESTIC_PASSWORD
-        +buildRepositoryUrl() injects user:pass into URL
+        +buildEnvironment() RESTIC_PASSWORD, RESTIC_REST_USERNAME, RESTIC_REST_PASSWORD
+        +buildRepositoryUrl() returns URL as-is
     }
 
     class ResticRcloneProvider {

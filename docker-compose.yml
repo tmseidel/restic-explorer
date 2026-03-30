@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   app:
     build:
@@ -20,6 +18,7 @@ services:
     restart: unless-stopped
     volumes:
       - app-data:/app/data
+      - ./test-sftp-key:/app/ssh/test-sftp-key:ro
 
   db:
     image: postgres:16-alpine
