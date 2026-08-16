@@ -1,21 +1,27 @@
 # Restic Explorer
 
-A web-based dashboard for monitoring and browsing [restic](https://restic.net/) backup repositories. Manage multiple repositories (S3, Azure Blob Storage, SFTP), view snapshots, run integrity checks, and integrate with existing monitoring — all from a clean, responsive UI.
+A lightweight monitoring interface for [restic](https://restic.net/) backup repositories. Its primary purpose is to expose reliable backup health signals to observability solutions such as Grafana, Prometheus, and Uptime Kuma, while also providing a clean web UI for browsing repositories and snapshots when you need it.
+
+![Dashboard](https://raw.githubusercontent.com/tmseidel/restic-explorer/main/docs/screenshot_dashboard.png)
 
 ## Features
 
-- **Multi-Backend Repository Management** – S3 / S3-compatible, Azure Blob Storage, and SFTP backends; extensible architecture for additional connectors
+- **Health & Monitoring** – Actuator endpoints (`/actuator/health`, `/actuator/info`) report per-repository scan, integrity check, and retention status — ready for Prometheus, Uptime Kuma, Grafana, and other observability tools
+- **Multi-Backend Support** – S3 / S3-compatible, Azure Blob Storage, SFTP, REST Server, and Rclone (Google Drive, Dropbox, B2, OneDrive, …)
 - **Repository Groups** – Organize repositories into groups for a structured dashboard
 - **Automated Scanning** – Configurable per-repository scan intervals cache restic metadata for fast browsing
-- **Integrity Checks** – Scheduled `restic check` with configurable intervals per repository
-- **Retention Policies** – Optional per-repository policies (daily/weekly/monthly/yearly/last) with soft warning badges on the dashboard
-- **Dashboard** – Overview of all repositories with snapshot counts, scan status, check status, and retention policy compliance
+- **Integrity Checks** – Scheduled `restic check --read-data` with configurable intervals per repository
+- **Retention Policies** – Optional per-repository policies (daily/weekly/monthly/yearly/last) with soft warning badges
 - **Snapshot Browser** – Paginated, sortable snapshot list with a dedicated detail page per snapshot
 - **Snapshot Download** – Admin-only download of snapshots as `.tar` archives
-- **Single Admin Account** – Password setup on first launch; public read access for dashboards and health endpoints
+- **Lock Detection & Unlock** – Automatic stale lock detection with one-click unlock for admins
+- **Error Log** – Persistent scan/check failure log with date filtering and auto-cleanup
 - **Encrypted at Rest** – Repository passwords and backend credentials encrypted via AES-256-GCM
-- **Health & Monitoring** – Spring Actuator endpoints (`/actuator/health`, `/actuator/info`, `/actuator/metrics`) reporting per-repo scan, check, and retention status — ready for Prometheus, Uptime Kuma, etc.
-- **Responsive UI** – Bootstrap 5, dark-mode aware logo, mobile-friendly
+- **Dark Mode & Responsive UI** – Bootstrap 5.3 with automatic light/dark theme switching
+
+| Snapshots | Snapshot Detail |
+|---|---|
+| ![Snapshots](https://raw.githubusercontent.com/tmseidel/restic-explorer/main/docs/screenshot_snapshots.png) | ![Detail](https://raw.githubusercontent.com/tmseidel/restic-explorer/main/docs/screenshot_snapshot.png) |
 
 ## Quick Start
 
@@ -136,12 +142,24 @@ ssh user@host -i /app/ssh/id_rsa -s sftp
 
 > The container runs as UID/GID 1000 so bind-mounted keys owned by the default host user are readable without extra steps. Mount as `:ro` for security.
 
+### Rclone Configuration
+
+For Rclone repositories, mount your `rclone.conf` into the container:
+
+```yaml
+volumes:
+  - /home/youruser/.config/rclone/rclone.conf:/home/appuser/.config/rclone/rclone.conf:ro
+```
+
+Rclone is pre-installed in the image. Credentials are managed by rclone's own configuration, not by Restic Explorer.
+
 ### Volumes
 
 | Path | Purpose |
 |---|---|
 | `/app/data` | Application data directory |
 | `/app/ssh` | Mount point for SSH private keys (SFTP backend) |
+| `/home/appuser/.config/rclone/rclone.conf` | Rclone configuration (Rclone backend) |
 
 ### Ports
 
@@ -171,7 +189,7 @@ The custom `resticMetadata` health indicator reports per-repository scan status,
 ## Image Details
 
 - **Base image**: `eclipse-temurin:21-jre-alpine` (multi-stage build)
-- **Includes**: `restic` CLI, `openssh-client`, `curl` (installed via apk)
+- **Includes**: `restic` CLI, `rclone`, `openssh-client`, `curl` (installed via apk)
 - **Runs as**: Non-root user `appuser` (UID/GID 1000)
 - **Spring profile**: `docker` (activated automatically)
 - **Database**: Requires external PostgreSQL
