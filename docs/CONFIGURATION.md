@@ -112,5 +112,5 @@ ansible-playbook -i inventory.ini deploy.yml
 
 ### Upgrading from < 0.4 to ≥ 1.0
 
-Version 0.4 includes a `SchemaFixRunner` that reconciles Hibernate check constraints for PostgreSQL enum columns. This runner will be removed in 1.0. **You must run a version ≥ 0.4 and < 1.0 before upgrading to ≥ 1.0.**
+Version 0.4 includes a `SchemaFixRunner` that reconciles Hibernate check constraints for PostgreSQL enum columns. This runner is deprecated and will be removed in a future 1.x release. **You must run a version ≥ 0.4 and < 1.0 before upgrading to ≥ 1.0.**
 

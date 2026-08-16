@@ -466,6 +466,7 @@ Backend-specific configuration (S3 keys, Azure credentials, SFTP commands) is st
 | Azure | `AZURE_ACCOUNT_NAME`, `AZURE_ACCOUNT_KEY`, `AZURE_ENDPOINT_SUFFIX` | Account Key |
 | SFTP | `SFTP_PASSWORD_COMMAND`, `SFTP_COMMAND` | None |
 | REST | `REST_USERNAME`, `REST_PASSWORD` | Password |
+| Rclone | `RCLONE_PROGRAM`, `RCLONE_ARGS` | None |
 
 ## UI Architecture
 
@@ -525,8 +526,4 @@ graph TB
 | Containerization | Docker (multi-stage build) |
 | Deployment | Docker Compose, Ansible |
 | Backup Tool | Restic CLI |
-
-## Schema Migration
-
-The `SchemaFixRunner` (in `config/`) runs on startup to reconcile Hibernate-generated check constraints on PostgreSQL for `@Enumerated(STRING)` columns. When new enum values are added (e.g. a new `RepositoryType` or `RepositoryPropertyKey`), `ddl-auto=update` does not update existing constraints. The runner replaces stale constraints with current values. This will be removed in version 1.0.
 

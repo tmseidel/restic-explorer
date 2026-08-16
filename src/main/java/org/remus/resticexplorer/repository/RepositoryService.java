@@ -8,6 +8,7 @@ import org.remus.resticexplorer.repository.data.ResticRepository;
 import org.remus.resticexplorer.repository.data.ResticRepositoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public class RepositoryService {
     private final EntityManager entityManager;
 
     public List<ResticRepository> findAll() {
-        List<ResticRepository> repos = repositoryRepository.findAll();
+        List<ResticRepository> repos = repositoryRepository.findAll(Sort.by(Sort.Direction.ASC, "name"));
         repos.forEach(this::decryptSensitiveProperties);
         return repos;
     }
