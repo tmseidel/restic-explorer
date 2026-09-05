@@ -16,7 +16,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div th:class="${localAuthEnabled} ? 'col-md-6' : 'd-none'" class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header"><i class="bi bi-key"></i> <span th:text="#{admin.changePassword}">Change Password</span></div>
                 <div class="card-body">
@@ -40,7 +40,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
+        <div th:class="${localAuthEnabled} ? 'col-md-6' : 'col-md-12'">
             <div class="card shadow-sm">
                 <div class="card-header"><i class="bi bi-info-circle"></i> <span th:text="#{admin.systemInfo}">System Information</span></div>
                 <div class="card-body">
@@ -51,6 +51,8 @@
                         <dd class="col-sm-7" th:text="${appVersion}">0.0.0</dd>
                         <dt class="col-sm-5" th:text="#{admin.actuatorHealth}">Actuator Health</dt>
                         <dd class="col-sm-7"><a th:href="@{/actuator/health}" target="_blank">/actuator/health</a></dd>
+                        <dt class="col-sm-5" th:text="#{admin.authMode}">Authentication</dt>
+                        <dd class="col-sm-7" th:text="${localAuthEnabled} ? #{admin.authMode.local} : #{admin.authMode.oauth2}">Local</dd>
                     </dl>
                 </div>
             </div>

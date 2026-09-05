@@ -43,12 +43,17 @@ public class AdminController {
     public String adminPanel(Model model) {
         model.addAttribute("changePasswordForm", new ChangePasswordForm());
         model.addAttribute("appVersion", buildProperties.map(BuildProperties::getVersion).orElse("dev"));
+        model.addAttribute("localAuthEnabled", adminService.isLocalAuthEnabled());
+        model.addAttribute("oauth2AuthEnabled", adminService.isOAuth2AuthEnabled());
         return "admin/index";
     }
 
     @PostMapping("/change-password")
     public String changePassword(@Valid @ModelAttribute ChangePasswordForm form,
                                   BindingResult result, RedirectAttributes redirectAttributes) {
+        if (adminService.isOAuth2AuthEnabled()) {
+            throw new IllegalStateException("Password change is not available when OAuth2 authentication is enabled");
+        }
         if (!form.getNewPassword().equals(form.getConfirmPassword())) {
             result.rejectValue("confirmPassword", "validation.password.mismatch", "Passwords do not match");
         }

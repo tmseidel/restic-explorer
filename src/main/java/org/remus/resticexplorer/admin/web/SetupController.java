@@ -20,6 +20,9 @@ public class SetupController {
 
     @GetMapping
     public String showSetup(Model model) {
+        if (adminService.isOAuth2AuthEnabled()) {
+            return "redirect:/login";
+        }
         if (adminService.isSetupComplete()) {
             return "redirect:/";
         }
@@ -30,6 +33,9 @@ public class SetupController {
     @PostMapping
     public String processSetup(@Valid @ModelAttribute SetupForm setupForm,
                                 BindingResult result, Model model) {
+        if (adminService.isOAuth2AuthEnabled()) {
+            return "redirect:/login";
+        }
         if (adminService.isSetupComplete()) {
             return "redirect:/";
         }
