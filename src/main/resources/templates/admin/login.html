@@ -24,7 +24,7 @@
                         <i class="bi bi-info-circle"></i> <span th:text="#{login.logout}">You have been logged out.</span>
                     </div>
 
-                    <form th:action="@{/login}" method="post">
+                    <form th:action="@{/login}" method="post" th:if="${localAuthEnabled}">
                         <div class="mb-3">
                             <label for="username" class="form-label" th:text="#{login.username}">Username</label>
                             <input type="text" class="form-control" id="username" name="username" value="admin" readonly>
@@ -37,6 +37,19 @@
                             <i class="bi bi-box-arrow-in-right"></i> <span th:text="#{login.submit}">Login</span>
                         </button>
                     </form>
+
+                    <div th:if="${oauth2AuthEnabled}" class="d-grid gap-2" th:classappend="${localAuthEnabled} ? 'mt-3' : ''">
+                        <a th:each="provider : ${oauth2Providers}"
+                           th:href="@{/oauth2/authorization/{id}(id=${provider})}"
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            <span th:text="#{login.oauth2.submit} + ' ' + ${provider}">Login with provider</span>
+                        </a>
+                        <div th:if="${#lists.isEmpty(oauth2Providers)}" class="alert alert-warning mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span th:text="#{login.oauth2.noProviders}">No OAuth2 providers are configured.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="text-center mt-3">

@@ -35,6 +35,10 @@ public class ScanService {
     private final RetentionPolicyChecker retentionPolicyChecker;
     private final ErrorLogService errorLogService;
 
+    /** restic stats counting modes. */
+    private static final String MODE_RESTORE_SIZE = "restore-size";
+    private static final String MODE_RAW_DATA = "raw-data";
+
     @Scheduled(fixedDelayString = "${restic.scan.check-interval:60000}")
     public void scheduledScan() {
         List<ResticRepository> repos = repositoryService.findAllEnabled();
@@ -92,9 +96,9 @@ public class ScanService {
 
                 snapshot.setTreeHash((String) snapshotData.get("tree"));
 
-                // Fetch per-snapshot statistics
+                // Fetch per-snapshot statistics (restore-size = logical size of this snapshot)
                 try {
-                    Map<String, Object> snapshotStats = resticCommandService.getSnapshotStats(repo, snapshot.getSnapshotId());
+                    Map<String, Object> snapshotStats = resticCommandService.getSnapshotStats(repo, snapshot.getSnapshotId(), MODE_RESTORE_SIZE);
                     if (snapshotStats.containsKey("total_size")) {
                         snapshot.setTotalSize(((Number) snapshotStats.get("total_size")).longValue());
                     }
@@ -108,13 +112,19 @@ public class ScanService {
                 snapshotRepository.save(snapshot);
             }
 
-            Map<String, Object> stats = resticCommandService.getStats(repo);
-            if (stats.containsKey("total_size")) {
-                totalSize = ((Number) stats.get("total_size")).longValue();
+            // Repository total size: use raw-data mode (actual blob size on disk) rather than the
+            // default restore-size, which counts the logical size of every file in every snapshot
+            // and greatly overstates disk usage for repositories with many snapshots.
+            Map<String, Object> onDiskStats = resticCommandService.getStats(repo, MODE_RAW_DATA);
+            if (onDiskStats.containsKey("total_size")) {
+                totalSize = ((Number) onDiskStats.get("total_size")).longValue();
             }
+
+            // raw-data mode does not report total_file_count; fetch it from a restore-size pass.
             long totalFileCount = 0;
-            if (stats.containsKey("total_file_count")) {
-                totalFileCount = ((Number) stats.get("total_file_count")).longValue();
+            Map<String, Object> fileStats = resticCommandService.getStats(repo, MODE_RESTORE_SIZE);
+            if (fileStats.containsKey("total_file_count")) {
+                totalFileCount = ((Number) fileStats.get("total_file_count")).longValue();
             }
 
             scanResult.setStatus(ScanResult.ScanStatus.SUCCESS);
