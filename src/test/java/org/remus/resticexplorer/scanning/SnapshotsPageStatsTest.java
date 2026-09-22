@@ -78,7 +78,7 @@ class SnapshotsPageStatsTest {
 
         mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Total Size:")))
+                .andExpect(content().string(containsString("Repository Size (on disk):")))
                 .andExpect(content().string(containsString("Total Files:")))
                 .andExpect(content().string(containsString("Snapshots:")));
     }
@@ -89,7 +89,7 @@ class SnapshotsPageStatsTest {
 
         mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(not(containsString("Total Size:"))))
+                .andExpect(content().string(not(containsString("Repository Size (on disk):"))))
                 .andExpect(content().string(not(containsString("Total Files:"))));
     }
 
@@ -124,7 +124,7 @@ class SnapshotsPageStatsTest {
 
         mockMvc.perform(get("/repositories/" + repo.getId() + "/snapshots"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("\u2014"))); // em-dash fallback
+                .andExpect(content().string(containsString("—"))); // em-dash fallback
     }
 
     @Test
