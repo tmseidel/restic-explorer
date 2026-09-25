@@ -5,16 +5,16 @@
 [![Docker Hub](https://img.shields.io/docker/v/tmseidel/restic-explorer?label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/tmseidel/restic-explorer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A lightweight web dashboard for monitoring [restic](https://restic.net/) backup repositories. Built with Spring Boot 4, Thymeleaf, and Bootstrap 5.
+A lightweight monitoring interface for [restic](https://restic.net/) backup repositories, built to feed status and health data into observability solutions such as Grafana, Prometheus, or Uptime Kuma. It includes its own dashboard UI for browsing repositories and snapshots, but its primary purpose is to expose reliable, queryable backup health signals to external monitoring systems. Built with Spring Boot 4, Thymeleaf, and Bootstrap 5.
 
 ![Dashboard](docs/screenshot_dashboard.png)
 
 ## Key Features
 
-- **Multi-Repository Dashboard** — monitor all your restic repos in one place with status badges, groups, and lock warnings
+- **Observability-First Health Signals** — `/actuator/health` exposes per-repository scan, integrity-check, and retention status for easy integration with Grafana, Prometheus, Uptime Kuma, or any HTTP-monitoring tool
+- **Multi-Repository Dashboard** — browse all your restic repos in one place with status badges, groups, and lock warnings
 - **Automated Scanning & Integrity Checks** — scheduled `restic snapshots` and `restic check --read-data`
 - **Retention Policies** — advisory daily/weekly/monthly/yearly rules with amber violation warnings
-- **Health Endpoint** — `/actuator/health` with per-repo scan, check, and retention status for integration with external monitoring
 - **Encrypted Credentials** — AES-256-GCM at rest for passwords and backend keys
 - **Dark Mode & Responsive UI** — Bootstrap 5.3 with automatic light/dark theme
 
@@ -55,6 +55,44 @@ mvn clean package         # Build jar
 ```
 
 Requires Java 21+ and [restic](https://restic.readthedocs.io/en/stable/020_installation.html) on PATH.
+
+## Querying Backup Health
+
+The main integration point is `GET /actuator/health`. It returns the overall application status and a `resticMetadata` object with per-repository scan, check, and retention information.
+
+### Basic curl checks
+
+```bash
+# Overall status (HTTP 200 when healthy, non-200 when any repo failed)
+curl -fsS http://localhost:8080/actuator/health | jq .
+
+# Number of healthy vs unhealthy repositories
+curl -fsS http://localhost:8080/actuator/health | jq '.components.resticMetadata.details | {healthy: .healthyRepositories, unhealthy: .unhealthyRepositories}'
+
+# Per-repo status for a repository named "nas-backup"
+curl -fsS http://localhost:8080/actuator/health | jq '.components.resticMetadata.details."repository_nas-backup"'
+```
+
+### Common jq filters
+
+```bash
+# List every repository and its last scan/check status
+curl -fsS http://localhost:8080/actuator/health | jq '.components.resticMetadata.details | to_entries[] | select(.key | startswith("repository_")) | {name: .key, scan: .value.lastScanStatus, check: .value.lastCheckStatus, retentionOK: .value.retentionPolicyFulfilled}'
+
+# Show only repositories with scan or check failures
+curl -fsS http://localhost:8080/actuator/health | jq '.components.resticMetadata.details | to_entries[] | select(.key | startswith("repository_")) | select(.value.lastScanStatus == "FAILED" or .value.lastCheckStatus == "FAILED")'
+
+# Count total repositories and cached snapshots
+curl -fsS http://localhost:8080/actuator/health | jq '.components.resticMetadata.details | {repos: .totalRepositories, snapshots: .totalCachedSnapshots}'
+```
+
+### Integrations
+
+- **Uptime Kuma / simple HTTP monitor** — monitor `http://localhost:8080/actuator/health`. The endpoint returns HTTP 503 when any repository scan or integrity check has failed.
+- **Prometheus** — scrape `/actuator/prometheus` (if enabled) or use the [JSON exporter](https://github.com/prometheus-community/json_exporter) against `/actuator/health` to turn `healthyRepositories` / `unhealthyRepositories` into metrics.
+- **Grafana** — use the [Infinity](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/) or [JSON API](https://grafana.com/grafana/plugins/marcusolsson-json-datasource/) datasource to query `/actuator/health` and build per-repo health panels.
+
+See [Configuration](docs/CONFIGURATION.md) for enabling `/actuator/prometheus` and securing actuator access.
 
 ## Screenshots
 

@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class ResticCommandService {
 
     public List<Map<String, Object>> listSnapshots(ResticRepository repository) {
         String output = executeCommand(repository, "--no-lock", "snapshots", "--json");
-        if (output == null || output.isBlank()) {
+        if (output.isBlank()) {
             return Collections.emptyList();
         }
         try {
@@ -56,9 +57,16 @@ public class ResticCommandService {
         }
     }
 
-    public Map<String, Object> getStats(ResticRepository repository) {
-        String output = executeCommand(repository, "--no-lock", "stats", "--json");
-        if (output == null || output.isBlank()) {
+    /**
+     * Repository-level statistics.
+     *
+     * @param mode counting mode: {@code restore-size} (default, logical size of all snapshots),
+     *             {@code raw-data} (actual blob size on disk), {@code files-by-contents}, or
+     *             {@code blobs-per-file}
+     */
+    public Map<String, Object> getStats(ResticRepository repository, String mode) {
+        String output = executeCommand(repository, "--no-lock", "stats", "--mode", mode, "--json");
+        if (output.isBlank()) {
             return Collections.emptyMap();
         }
         try {
@@ -68,9 +76,15 @@ public class ResticCommandService {
         }
     }
 
-    public Map<String, Object> getSnapshotStats(ResticRepository repository, String snapshotId) {
-        String output = executeCommand(repository, "--no-lock", "stats", snapshotId, "--json");
-        if (output == null || output.isBlank()) {
+    /**
+     * Per-snapshot statistics.
+     *
+     * @param mode counting mode: {@code restore-size} (default, logical size of the snapshot),
+     *             {@code raw-data}, {@code files-by-contents}, or {@code blobs-per-file}
+     */
+    public Map<String, Object> getSnapshotStats(ResticRepository repository, String snapshotId, String mode) {
+        String output = executeCommand(repository, "--no-lock", "stats", snapshotId, "--mode", mode, "--json");
+        if (output.isBlank()) {
             return Collections.emptyMap();
         }
         try {
@@ -87,7 +101,7 @@ public class ResticCommandService {
 
     public List<String> listLocks(ResticRepository repository) {
         String output = executeCommand(repository, "--no-lock", "list", "locks");
-        if (output == null || output.isBlank()) {
+        if (output.isBlank()) {
             return Collections.emptyList();
         }
         return Arrays.stream(output.trim().split("\n"))
@@ -95,8 +109,8 @@ public class ResticCommandService {
                 .collect(Collectors.toList());
     }
 
-    public String unlockRepository(ResticRepository repository) {
-        return executeCommand(repository, "unlock");
+    public void unlockRepository(ResticRepository repository) {
+        executeCommand(repository, "unlock");
     }
 
     public InputStream downloadSnapshot(ResticRepository repository, String snapshotId) {
@@ -147,27 +161,41 @@ public class ResticCommandService {
         try {
             Process process = pb.start();
 
-            String stdout;
-            String stderr;
-            try (BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                 BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-
-                stdout = readAll(stdoutReader);
-                stderr = readAll(stderrReader);
-            }
+            // Drain stdout and stderr on background threads. If we read inline (as the old
+            // code did), readAll() blocks until EOF and the timeout below is never reached: a
+            // hung restic/ssh process keeps its stream open, so the read blocks forever and the
+            // process is never reaped. Draining on side threads lets waitFor() act as the real
+            // gate, and the tree-kill below reaps the ssh grandchild that a plain
+            // destroyForcibly() would miss.
+            StringBuilder out = new StringBuilder();
+            StringBuilder err = new StringBuilder();
+            Thread outThread = drainTo(process.getInputStream(), out);
+            Thread errThread = drainTo(process.getErrorStream(), err);
+            outThread.start();
+            errThread.start();
 
             boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
             if (!finished) {
-                process.destroyForcibly();
+                killProcessTree(process);
+                outThread.join(2000);
+                errThread.join(2000);
                 throw new ResticCommandTimeoutException(timeoutSeconds);
             }
 
+            outThread.join(2000);
+            errThread.join(2000);
+
             int exitCode = process.exitValue();
             if (exitCode != 0) {
+                // Make sure the process tree (restic + any ssh grandchild) is fully reaped
+                // before the caller moves on, so a failed scan never leaks an idle ssh session.
+                killProcessTree(process);
+
                 // Log full details for operators/diagnostics.
-                log.error("Restic command failed (exit code {}), stderr: {}", exitCode, stderr);
+                log.error("Restic command failed (exit code {}), stderr: {}", exitCode, err);
 
                 // Build a sanitized, user-facing message without exposing raw stderr.
+                String stderr = err.toString();
                 String message;
                 if (stderr.contains("unsupported repository version")) {
                     // Use a stable message key that can be localized/resolved in the UI layer.
@@ -179,13 +207,44 @@ public class ResticCommandService {
                 throw new ResticCommandException(message, stderr);
             }
 
-            return stdout;
+            return out.toString();
         } catch (Exception e) {
             if (e instanceof ResticCommandException rce) {
                 throw rce;
             }
             throw new ResticCommandException("Failed to execute restic command: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Reads a stream to EOF into {@code sink} on a daemon thread, so the calling thread is never
+     * blocked waiting for the process to close its output. Swallows IO errors (the process dying
+     * mid-read is the normal case).
+     */
+    private Thread drainTo(InputStream in, StringBuilder sink) {
+        Thread t = new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+                sink.append(readAll(reader));
+            } catch (IOException ignored) {
+                // Process terminated before the stream was fully read; nothing to salvage.
+            }
+        });
+        t.setDaemon(true);
+        return t;
+    }
+
+    /**
+     * Forcefully terminates the process <em>and</em> every descendant (leaf-first, so the {@code
+     * ssh} grandchild restic spawned is reaped before restic itself). A plain
+     * {@link Process#destroyForcibly()} only signals the direct child; the SFTP backend's ssh
+     * process is a grandchild and would otherwise be orphaned to PID 1, holding an open network
+     * session indefinitely.
+     */
+    private void killProcessTree(Process process) {
+        process.toHandle().descendants()
+                .sorted(Comparator.reverseOrder())
+                .forEach(ProcessHandle::destroyForcibly);
+        process.destroyForcibly();
     }
 
     private ResticRepositoryProvider getProvider(ResticRepository repository) {

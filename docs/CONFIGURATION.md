@@ -9,6 +9,50 @@
 | `restic.timeout` | `300` | Timeout in seconds for restic commands |
 | `restic.scan.check-interval` | `60000` | Interval in ms to check for due scans/checks |
 | `restic.encryption.key` | *(empty)* | Base64-encoded AES key for encrypting sensitive data |
+| `restic.auth.mode` | `local` | Authentication mode: `local` (built-in admin) or `oauth2` (external provider) |
+| `restic.auth.allowed-providers` | *(empty)* | Comma-separated OAuth2 provider ids allowed to log in. Empty = any configured provider. |
+
+## Authentication
+
+Restic Explorer supports two authentication modes, selected via `restic.auth.mode`.
+
+### Local authentication (default)
+
+On first launch the application redirects to `/setup` where you create a single local admin account. Username is always `admin`. The password can be changed from the Admin panel.
+
+### OAuth2 authentication
+
+When `restic.auth.mode=oauth2`, local login and setup are disabled. Users authenticate through a configured OAuth2/OIDC provider such as Keycloak or Microsoft Entra ID. Every successfully authenticated user receives the `ADMIN` role, so restrict access on the provider side.
+
+Minimal configuration example for Keycloak:
+
+```properties
+restic.auth.mode=oauth2
+
+spring.security.oauth2.client.registration.keycloak.client-id=restic-explorer
+spring.security.oauth2.client.registration.keycloak.client-secret=YOUR_CLIENT_SECRET
+spring.security.oauth2.client.registration.keycloak.scope=openid,profile,email
+spring.security.oauth2.client.provider.keycloak.issuer-uri=https://keycloak.example.com/realms/master
+```
+
+Minimal configuration example for Microsoft Entra ID:
+
+```properties
+restic.auth.mode=oauth2
+
+spring.security.oauth2.client.registration.entra.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.entra.client-secret=YOUR_CLIENT_SECRET
+spring.security.oauth2.client.registration.entra.scope=openid,profile,email
+spring.security.oauth2.client.provider.entra.issuer-uri=https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0
+```
+
+Restricting providers:
+
+```properties
+restic.auth.allowed-providers=keycloak
+```
+
+> ⚠️ If `restic.auth.mode=oauth2` is set but no OAuth2 client registrations are configured, the application fails to start with a clear error message.
 
 ## Docker Environment Variables
 

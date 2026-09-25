@@ -13,7 +13,7 @@
 
     <groupId>org.remus</groupId>
     <artifactId>restic-explorer</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <name>Restic Explorer</name>
     <description>Web application to manage and explore restic backup repositories</description>
 
@@ -38,6 +38,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

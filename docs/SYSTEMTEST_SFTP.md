@@ -63,7 +63,7 @@ ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost ec
 ## 3. Initialize a Restic Repository over SFTP
 
 ```bash
-ssh -o StrictHostKeyChecking=no -i ./sftp-test-key -p 2222 testuser@localhost mkdir -p /config/restic-repo
+ssh -o StrictHostKeyChecking=no -i ./test-sftp-key -p 2222 testuser@localhost mkdir -p /config/restic-repo
 
 export RESTIC_PASSWORD="test1234"
 restic -r sftp:testuser@localhost:/config/restic-repo \
